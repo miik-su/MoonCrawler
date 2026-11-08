@@ -1,0 +1,31 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "miik-su/mooncrawler/engine"
+
+import {
+  "miik-su/mooncrawler/core",
+  "miik-su/mooncrawler/fetcher",
+  "miik-su/mooncrawler/frontier",
+  "miik-su/mooncrawler/parser",
+  "miik-su/mooncrawler/pipeline",
+  "miik-su/mooncrawler/storage",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct Engine {
+  config : @core.Config
+  frontier : @frontier.Frontier
+  // private fields
+}
+pub fn Engine::new(@core.Config, &@fetcher.Fetcher, &@storage.Storage, parser? : &@parser.Parser, processors? : Array[&@pipeline.Processor], snapshot? : @storage.Snapshot) -> Self raise @core.CrawlError
+pub fn Engine::pages(Self) -> Array[@core.Page]
+pub async fn Engine::run(Self, should_stop? : async () -> Bool) -> Unit
+pub fn Engine::seed(Self, String) -> Bool raise
+pub fn Engine::snapshot(Self) -> @storage.Snapshot
+
+// Type aliases
+
+// Traits

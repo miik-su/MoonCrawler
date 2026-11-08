@@ -1,0 +1,24 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "miik-su/mooncrawler/pipeline"
+
+import {
+  "miik-su/mooncrawler/core",
+}
+
+// Values
+pub fn run(@core.Page, Array[&Processor]) -> @core.Page? raise
+
+// Errors
+
+// Types and methods
+pub(all) struct CleanText {
+}
+pub fn CleanText::process(Self, @core.Page) -> @core.Page? raise
+pub impl Processor for CleanText
+
+// Type aliases
+
+// Traits
+pub(open) trait Processor {
+  fn process(Self, @core.Page) -> @core.Page? raise
+}

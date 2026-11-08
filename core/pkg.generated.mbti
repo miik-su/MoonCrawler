@@ -1,0 +1,115 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "miik-su/mooncrawler/core"
+
+import {
+  "miik-su/mooncrawler/url",
+  "moonbitlang/core/debug",
+  "moonbitlang/core/json",
+}
+
+// Values
+
+// Errors
+pub(all) suberror CrawlError {
+  Invalid(String)
+  Security(String)
+  Capacity(String)
+  Protocol(String)
+  Network(String)
+  Storage(String)
+  StaleLease
+} derive(@debug.Debug)
+pub fn CrawlError::to_repr(Self) -> @debug.Repr
+
+// Types and methods
+pub(all) struct Config {
+  max_depth : Int32
+  max_pages : Int32
+  concurrency : Int32
+  per_host : Int32
+  delay_ms : Int32
+  timeout_ms : Int32
+  max_body_bytes : Int32
+  max_header_bytes : Int32
+  max_redirects : Int32
+  max_attempts : Int32
+  lease_ms : Int32
+  user_agent : String
+  allowed_hosts : Array[String]
+  denied_paths : Array[String]
+  denied_extensions : Array[String]
+  include_query : Bool
+  robots : Bool
+  allow_loopback : Bool
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+pub fn Config::accepts(Self, Request) -> Bool
+pub fn Config::default() -> Self
+pub fn Config::equal(Self, Self) -> Bool
+pub fn Config::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Config::not_equal(Self, Self) -> Bool
+pub fn Config::to_json(Self) -> Json
+pub fn Config::to_repr(Self) -> @debug.Repr
+pub fn Config::validate(Self) -> Unit raise CrawlError
+
+pub(all) struct Page {
+  url : String
+  title : String
+  description : String
+  text : String
+  links : Array[String]
+  images : Array[String]
+  canonical : String
+  metadata : Map[String, String]
+} derive(ToJson, @debug.Debug, @json.FromJson)
+pub fn Page::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Page::to_json(Self) -> Json
+pub fn Page::to_repr(Self) -> @debug.Repr
+
+pub(all) struct Request {
+  url : @url.Url
+  depth : Int32
+  priority : Int32
+  source : String
+} derive(ToJson, @debug.Debug, @json.FromJson)
+pub fn Request::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Request::to_json(Self) -> Json
+pub fn Request::to_repr(Self) -> @debug.Repr
+
+pub(all) struct Response {
+  url : @url.Url
+  status : Int32
+  headers : Map[String, String]
+  body : String
+} derive(@debug.Debug)
+pub fn Response::to_repr(Self) -> @debug.Repr
+
+pub(all) enum State {
+  Pending
+  Running
+  Succeeded
+  RetryPending
+  PermanentlyFailed
+  Cancelled
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+pub fn State::equal(Self, Self) -> Bool
+pub fn State::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn State::not_equal(Self, Self) -> Bool
+pub fn State::to_json(Self) -> Json
+pub fn State::to_repr(Self) -> @debug.Repr
+
+pub(all) struct Task {
+  request : Request
+  state : State
+  attempts : Int32
+  generation : Int32
+  ready_at : Int64
+  lease_until : Int64
+  error : String
+} derive(ToJson, @debug.Debug, @json.FromJson)
+pub fn Task::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Task::to_json(Self) -> Json
+pub fn Task::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

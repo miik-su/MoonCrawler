@@ -1,6 +1,8 @@
 ///|
 test "agent groups longest rule allow ties wildcards and anchors" {
-  let rules = @robots.parse("User-agent: *\nDisallow: /\nUser-agent: MoonCrawler\nDisallow: /private*\nAllow: /private/public\nDisallow: /*.pdf$\nUser-agent: MoonCrawler\nAllow: /private/public\nSitemap: https://example.com/map.xml")
+  let rules = @robots.parse(
+    "User-agent: *\nDisallow: /\nUser-agent: MoonCrawler\nDisallow: /private*\nAllow: /private/public\nDisallow: /*.pdf$\nUser-agent: MoonCrawler\nAllow: /private/public\nSitemap: https://example.com/map.xml",
+  )
   assert_true(rules.allows("MoonCrawler/0.1", "/index"))
   assert_false(rules.allows("MoonCrawler/0.1", "/private/x"))
   assert_true(rules.allows("MoonCrawler/0.1", "/private/public"))
@@ -21,7 +23,9 @@ test "robots failure policy and expiry" {
 
 ///|
 test "robots matches UTF8 and unreserved escapes but preserves escaped slashes" {
-  let rules = @robots.parse("User-agent: *\nDisallow: /中文\nDisallow: /%7eprivate\nDisallow: /escaped%2Fpath")
+  let rules = @robots.parse(
+    "User-agent: *\nDisallow: /中文\nDisallow: /%7eprivate\nDisallow: /escaped%2Fpath",
+  )
   assert_false(rules.allows("bot", "/%E4%B8%AD%E6%96%87"))
   assert_false(rules.allows("bot", "/~private"))
   assert_false(rules.allows("bot", "/escaped%2fpath"))

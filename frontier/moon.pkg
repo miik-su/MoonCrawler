@@ -1,1 +1,5 @@
-import { "miik-su/mooncrawler/core", "miik-su/mooncrawler/url", "moonbitlang/core/priority_queue" }
+import {
+  "miik-su/mooncrawler/core",
+  "miik-su/mooncrawler/url",
+  "moonbitlang/core/priority_queue",
+}

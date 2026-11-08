@@ -1,0 +1,26 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "miik-su/mooncrawler/robots"
+
+// Values
+pub fn parse(String) -> Rules
+
+// Errors
+
+// Types and methods
+pub struct Cache {
+  entries : Map[String, (Rules, Int64)]
+}
+pub fn Cache::get(Self, String, Int64) -> Rules?
+pub fn Cache::new() -> Self
+pub fn Cache::update(Self, String, Int32, String, Int64) -> Rules
+
+pub struct Rules {
+  sitemaps : Array[String]
+  // private fields
+}
+pub fn Rules::allows(Self, String, String) -> Bool
+pub fn Rules::sitemaps(Self) -> Array[String]
+
+// Type aliases
+
+// Traits

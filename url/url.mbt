@@ -127,7 +127,9 @@ pub fn parse(input : String) -> Url raise UrlError {
     }
   }
   let port = if hp.length() == 2 {
-    if hp[1].is_empty() || hp[1].iter().any(c => c < '0' || c > '9') { raise Invalid("invalid port") }
+    if hp[1].is_empty() || hp[1].iter().any(c => c < '0' || c > '9') {
+      raise Invalid("invalid port")
+    }
     @string.parse_int(hp[1]) catch {
       _ => raise Invalid("invalid port")
     }
@@ -174,7 +176,9 @@ pub fn resolve(base : Url, reference : String) -> Url raise UrlError {
   if r.has_prefix("//") {
     return parse(base.scheme + ":" + r)
   }
-  if r.split("/").to_array()[0].to_owned().split("?").to_array()[0].contains(":") &&
+  if r.split("/").to_array()[0].to_owned().split("?").to_array()[0].contains(
+      ":",
+    ) &&
     !r.has_prefix("/") &&
     !r.has_prefix("?") &&
     !r.has_prefix("#") {

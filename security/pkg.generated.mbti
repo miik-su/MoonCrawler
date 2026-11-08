@@ -1,0 +1,22 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "miik-su/mooncrawler/security"
+
+import {
+  "miik-su/mooncrawler/core",
+  "miik-su/mooncrawler/url",
+}
+
+// Values
+pub fn check_url(@url.Url, @core.Config) -> Unit raise @core.CrawlError
+
+pub fn public_ipv4(String, allow_loopback? : Bool) -> Bool
+
+pub async fn resolve_checked(@url.Url, @core.Config) -> String
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

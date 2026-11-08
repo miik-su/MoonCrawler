@@ -1,0 +1,30 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "miik-su/mooncrawler/scheduler"
+
+import {
+  "miik-su/mooncrawler/core",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct Scheduler {
+  config : @core.Config
+  active : Map[String, Int32]
+  next : Map[String, Int64]
+  mut running : Int32
+  mut paused : Bool
+}
+pub fn Scheduler::acquire(Self, String, Int64) -> Bool
+pub fn Scheduler::defer_host(Self, String, Int64) -> Unit
+pub fn Scheduler::eligible(Self, String, Int64) -> Bool
+pub fn Scheduler::new(@core.Config) -> Self raise @core.CrawlError
+pub fn Scheduler::pause(Self) -> Unit
+pub fn Scheduler::release(Self, String) -> Unit
+pub fn Scheduler::unpause(Self) -> Unit
+
+// Type aliases
+
+// Traits

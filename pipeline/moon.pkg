@@ -1,1 +1,3 @@
-import { "miik-su/mooncrawler/core" }
+import {
+  "miik-su/mooncrawler/core",
+}

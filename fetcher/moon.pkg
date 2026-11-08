@@ -1,6 +1,18 @@
 import {
-  "miik-su/mooncrawler/core", "miik-su/mooncrawler/url", "miik-su/mooncrawler/security",
-  "moonbitlang/async", "moonbitlang/async/shell", "moonbitlang/core/encoding/utf8", "moonbitlang/core/string",
+  "miik-su/mooncrawler/core",
+  "miik-su/mooncrawler/url",
+  "miik-su/mooncrawler/security",
+  "moonbitlang/async",
+  "moonbitlang/async/shell",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/string",
 }
-import { "moonbitlang/async/http", "moonbitlang/async/socket" } for "test"
-options(supported_targets: "native")
+
+import {
+  "moonbitlang/async/http",
+  "moonbitlang/async/socket",
+} for "test"
+
+options(
+  supported_targets: "native",
+)

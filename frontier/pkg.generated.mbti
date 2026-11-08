@@ -1,0 +1,33 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "miik-su/mooncrawler/frontier"
+
+import {
+  "miik-su/mooncrawler/core",
+  "miik-su/mooncrawler/url",
+}
+
+// Values
+pub fn restore(@core.Config, Array[@core.Task], Int64) -> Frontier raise @core.CrawlError
+
+// Errors
+
+// Types and methods
+pub struct Frontier {
+  config : @core.Config
+  tasks : Map[String, @core.Task]
+  // private fields
+}
+pub fn Frontier::cancel(Self, @url.Url) -> Bool
+pub fn Frontier::claim(Self, Int64, eligible? : (@core.Request) -> Bool) -> @core.Task?
+pub fn Frontier::complete(Self, @core.Task) -> Unit raise @core.CrawlError
+pub fn Frontier::count(Self, @core.State) -> Int32
+pub fn Frontier::enqueue(Self, @core.Request, Int64) -> Bool
+pub fn Frontier::fail(Self, @core.Task, Int64, String, retry_delay? : Int32) -> Unit raise @core.CrawlError
+pub fn Frontier::has_work(Self) -> Bool
+pub fn Frontier::new(@core.Config) -> Self raise @core.CrawlError
+pub fn Frontier::recover_expired(Self, Int64) -> Int32
+pub fn Frontier::snapshot(Self) -> Array[@core.Task]
+
+// Type aliases
+
+// Traits

@@ -1,0 +1,27 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "miik-su/mooncrawler/fetcher"
+
+import {
+  "miik-su/mooncrawler/core",
+  "miik-su/mooncrawler/url",
+}
+
+// Values
+pub fn decode(@url.Url, Bytes, @core.Config) -> @core.Response raise
+
+// Errors
+
+// Types and methods
+pub(all) struct CurlFetcher {
+  program : String
+}
+pub async fn CurlFetcher::fetch(Self, @url.Url, @core.Config) -> @core.Response
+pub async fn CurlFetcher::request(Self, @url.Url, @core.Config, verb? : String, headers? : Map[String, String]) -> @core.Response
+pub impl Fetcher for CurlFetcher
+
+// Type aliases
+
+// Traits
+pub(open) trait Fetcher {
+  async fn fetch(Self, @url.Url, @core.Config) -> @core.Response
+}

@@ -1,0 +1,55 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "miik-su/mooncrawler/storage"
+
+import {
+  "miik-su/mooncrawler/core",
+  "moonbitlang/core/debug",
+  "moonbitlang/core/json",
+}
+
+// Values
+pub fn jsonl(Array[@core.Page]) -> String
+
+pub async fn read_snapshot(String) -> Snapshot?
+
+pub fn validate(Snapshot) -> Unit raise @core.CrawlError
+
+// Errors
+
+// Types and methods
+pub struct FileStore {
+  directory : String
+  // private fields
+}
+pub fn FileStore::close(Self) -> Unit
+pub async fn FileStore::load(Self) -> Snapshot?
+pub async fn FileStore::open(String) -> Self
+pub async fn FileStore::save(Self, Snapshot) -> Unit
+pub impl Storage for FileStore
+
+pub struct MemoryStore {
+  // private fields
+}
+pub async fn MemoryStore::load(Self) -> Snapshot?
+pub fn MemoryStore::new() -> Self
+pub async fn MemoryStore::save(Self, Snapshot) -> Unit
+pub impl Storage for MemoryStore
+
+pub(all) struct Snapshot {
+  version : Int32
+  config : @core.Config
+  tasks : Array[@core.Task]
+  pages : Array[@core.Page]
+  saved_at : Int64
+} derive(ToJson, @debug.Debug, @json.FromJson)
+pub fn Snapshot::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Snapshot::to_json(Self) -> Json
+pub fn Snapshot::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits
+pub(open) trait Storage {
+  async fn save(Self, Snapshot) -> Unit
+  async fn load(Self) -> Snapshot?
+}

@@ -1,0 +1,40 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "miik-su/mooncrawler/url"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitlang/core/json",
+}
+
+// Values
+pub fn allowed(Url, Array[String], denied_prefixes? : Array[String], denied_extensions? : Array[String]) -> Bool
+
+pub fn parse(String) -> Url raise UrlError
+
+pub fn resolve(Url, String) -> Url raise UrlError
+
+// Errors
+pub suberror UrlError {
+  Invalid(String)
+} derive(@debug.Debug)
+pub fn UrlError::to_repr(Self) -> @debug.Repr
+
+// Types and methods
+pub(all) struct Url {
+  scheme : String
+  host : String
+  port : Int32
+  path : String
+  query : String
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+pub fn Url::equal(Self, Self) -> Bool
+pub fn Url::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Url::key(Self, include_query? : Bool) -> String
+pub fn Url::not_equal(Self, Self) -> Bool
+pub fn Url::origin(Self) -> String
+pub fn Url::to_json(Self) -> Json
+pub fn Url::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

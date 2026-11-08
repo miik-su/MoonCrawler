@@ -1,1 +1,5 @@
-import { "miik-su/mooncrawler/url" }
+import {
+  "miik-su/mooncrawler/url",
+  "moonbitlang/core/debug",
+  "moonbitlang/core/json",
+}

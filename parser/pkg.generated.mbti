@@ -1,0 +1,24 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "miik-su/mooncrawler/parser"
+
+import {
+  "miik-su/mooncrawler/core",
+}
+
+// Values
+pub fn extract(@core.Response) -> @core.Page raise @core.CrawlError
+
+// Errors
+
+// Types and methods
+pub(all) struct HtmlParser {
+}
+pub fn HtmlParser::parse(Self, @core.Response) -> @core.Page raise
+pub impl Parser for HtmlParser
+
+// Type aliases
+
+// Traits
+pub(open) trait Parser {
+  fn parse(Self, @core.Response) -> @core.Page raise
+}

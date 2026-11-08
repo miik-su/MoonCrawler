@@ -12,6 +12,6 @@ test "host capacity delays and pause do not block other hosts" {
   assert_false(s.acquire("a", 9999L))
   s.pause()
   assert_false(s.acquire("c", 10000L))
-  s.resume()
+  s.unpause()
   assert_true(s.acquire("c", 10000L))
 }

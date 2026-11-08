@@ -1,10 +1,13 @@
 ///|
 pub(open) trait Processor {
-  process(Self, @core.Page) -> @core.Page? raise
+  fn process(Self, @core.Page) -> @core.Page? raise
 }
 
 ///|
 pub(all) struct CleanText {}
+
+///|
+pub extend CleanText with Processor::{process}
 
 ///|
 pub impl Processor for CleanText with fn process(_self, page) {
@@ -15,19 +18,29 @@ pub impl Processor for CleanText with fn process(_self, page) {
     if c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\u00a0' {
       space = started
     } else {
-      if space { b.write_string(" "); space = false }
+      if space {
+        b.write_string(" ")
+        space = false
+      }
       b.write_char(c)
       started = true
     }
   }
-  Some({ ..page, text: b.to_string() })
+  Some({ ..page, text: b.to_string(), })
 }
 
 ///|
-pub fn run(page : @core.Page, processors : Array[&Processor]) -> @core.Page? raise {
+pub fn run(
+  page : @core.Page,
+  processors : Array[&Processor],
+) -> @core.Page? raise {
   let mut result = Some(page)
   for processor in processors {
-    if result is Some(p) { result = processor.process(p) } else { break }
+    if result is Some(p) {
+      result = processor.process(p)
+    } else {
+      break
+    }
   }
   result
 }
