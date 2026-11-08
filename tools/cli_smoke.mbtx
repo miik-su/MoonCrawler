@@ -1,0 +1,58 @@
+----
+import {
+  "moonbitlang/async@0.22.5",
+  "moonbitlang/async@0.22.5/fs",
+  "moonbitlang/async@0.22.5/http",
+  "moonbitlang/async@0.22.5/socket",
+  "moonbitlang/async@0.22.5/shell",
+}
+----
+
+async fn cli(args : Array[String]) -> String {
+  let command = ["run", "cmd/mooncrawler", "--target", "native", "--"]
+  command.append(args)
+  let output = @shell.Cmd("moon", command).output(timeout_ms=60000, max_output_bytes=1048576)
+  output.check()
+  output.stdout()
+}
+
+async fn main {
+  let dir = @fs.tmpdir(prefix="mooncrawler-cli-")
+  defer @fs.rmdir(dir, recursive=true)
+  ignore(cli(["init", dir + "/config.json"]))
+  let config = @fs.read_file(dir + "/config.json").text()
+    .replace(old="\"allow_loopback\": false", new="\"allow_loopback\": true")
+    .replace(old="\"delay_ms\": 1000", new="\"delay_ms\": 0")
+  @fs.write_file(dir + "/config.json", config)
+  assert_true(cli(["validate", dir + "/config.json"]).contains("valid"))
+  let server = @http.Server(@socket.Addr::parse("127.0.0.1:0"))
+  defer server.close()
+  let requests : Array[String] = []
+  @async.with_task_group(group => {
+    let serving = group.spawn(() => {
+      server.run_forever((request, _reader, conn) => {
+        requests.push(request.path)
+        let body = match request.path {
+          "/robots.txt" => "User-agent: *\nDisallow: /private"
+          "/" => "<title>CLI Home</title><a href='/next'>next</a><a href='/private'>private</a><a href='/'>cycle</a>"
+          _ => "<title>CLI Next</title><p>中文</p>"
+        }
+        conn.send_response(200, "OK", extra_headers={"Content-Type": "text/html; charset=utf-8"})
+        conn.write(body)
+        conn.end_response()
+      })
+    }, no_wait=true)
+    let url = "http://127.0.0.1:\{server.addr.port()}/"
+    let result = cli(["crawl", dir + "/config.json", dir + "/job", url])
+    assert_true(result.contains("saved 2 pages"))
+    assert_false(requests.contains("/private"))
+    let before = requests.length()
+    assert_true(cli(["resume", dir + "/job"]).contains("saved 2 pages"))
+    assert_eq(requests.length(), before)
+    assert_true(cli(["status", dir + "/job"]).contains("pages"))
+    ignore(cli(["export", dir + "/job", dir + "/pages.jsonl"]))
+    assert_eq(@fs.read_file(dir + "/pages.jsonl").text().split("\n").count(), 3)
+    serving.cancel()
+  })
+  println("CLI smoke passed: init validate crawl robots dedup resume status export (real HTTP, 2 pages)")
+}

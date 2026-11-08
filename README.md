@@ -4,4 +4,62 @@ MoonBit 原生、模块化的静态网页爬取引擎。
 
 实现目标：URL 规范化 → 有租约的 Frontier → 安全 Fetcher → Robots / 域名调度 → HTML 提取 → 可插拔 Pipeline → 幂等存储与检查点恢复。
 
-当前正在按 [实施计划](docs/implementation.md) 从空仓库建立实现。
+当前版本 **0.1.0**，按 [实施计划](docs/implementation.md) 从空仓库分阶段建立。
+[支持范围与发布待办](docs/compatibility.md) 明确列出限制。
+
+## 快速开始
+
+要求 MoonBit `0.10.17+d971670cd` / moon `0.1.20261023`、native 工具链和 curl。
+Windows 可使用系统 curl；Linux 需要 C 编译器和 OpenSSL 开发依赖。
+
+```sh
+moon update
+moon run cmd/mooncrawler --target native -- init config.json
+moon run cmd/mooncrawler --target native -- validate config.json
+```
+
+编辑 `config.json`，将 `allowed_hosts` 设置为准备抓取的授权站点域名。
+默认开启 Robots、单域名并发 1、请求间隔 1000ms、总任务上限 1000。
+
+```sh
+moon run cmd/mooncrawler --target native -- crawl config.json data/job https://example.com/
+moon run cmd/mooncrawler --target native -- status data/job
+moon run cmd/mooncrawler --target native -- export data/job pages.jsonl
+moon run cmd/mooncrawler --target native -- resume data/job
+```
+
+运行时在另一终端执行 `pause data/job`，停止领取新任务并等待在途请求结束、保存检查点。
+恢复使用保存的配置。`stats` 与 `status` 显示最近检查点计数；导出拒绝覆盖已有文件。
+
+离线扩展示例与本地真实 HTTP 验证：
+
+```sh
+moon run examples/offline --target native
+moon run tools/cli_smoke.mbtx
+```
+
+## 模块
+
+| 包 | 能力 |
+| --- | --- |
+| `url` / `core` | URL 规范化、相对链接、过滤、模型与配置 |
+| `frontier` / `retry` | 优先级堆、延迟堆、去重、租约、状态与退避 |
+| `scheduler` / `robots` | 域名/全局限流、暂停、规则与缓存 |
+| `security` / `fetcher` | SSRF 策略、DNS 检查与固定连接 IP、受限 HTTP(S) |
+| `parser` / `pipeline` | MoonBit HTML5 DOM、内容提取、清洗和过滤 |
+| `storage` / `engine` | 内存/文件适配器、JSONL、原子检查点、完整生命周期 |
+
+Fetcher、Parser、Processor、Storage 开放给外部 MoonBit 包实现。
+项目源码、CLI、验证脚本均为 MoonBit；默认传输适配器调用 curl。
+`MOONCRAWLER_CURL` 可指定可信的 curl 可执行文件路径。
+
+## 文档
+
+- [架构与扩展接口](docs/architecture.md)
+- [配置字段](docs/configuration.md)
+- [兼容性与后续计划](docs/compatibility.md)
+- [关键验证记录](docs/verification.md)
+- [依赖、Scrapy 与 RFC 参考来源](THIRD_PARTY_NOTICES.md)
+
+按要求仅运行关键测试，不跑全量测试。API 精确签名见各包的 `pkg.generated.mbti`。
+Apache-2.0；依赖按各自许可证使用。

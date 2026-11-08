@@ -1,0 +1,13 @@
+import {
+  "miik-su/mooncrawler/core",
+  "miik-su/mooncrawler/engine",
+  "miik-su/mooncrawler/fetcher",
+  "miik-su/mooncrawler/storage",
+  "moonbitlang/async",
+}
+
+pkgtype(kind: "executable")
+
+options(
+  supported_targets: "native",
+)

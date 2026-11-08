@@ -1,0 +1,27 @@
+name: Focused native verification
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install pinned MoonBit
+        run: curl -fsSL https://cli.moonbitlang.com/install/unix.sh -o /tmp/install-moonbit.sh
+      - run: bash /tmp/install-moonbit.sh '0.10.17+d971670cd'
+      - run: echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y libssl-dev curl
+      - run: moon update
+      - run: moon check --target native --warn-list -79
+      - run: moon fmt --check
+      - run: moon info --target native
+      - run: git diff --exit-code -- '*.mbti'
+      - name: Selected queue and policy checks
+        run: moon test frontier/scale_test.mbt robots/robots_test.mbt security/security_test.mbt --target native --warn-list -79
+      - name: Selected integration and failure checks
+        run: moon test engine/engine_test.mbt engine/failure_test.mbt fetcher/network_test.mbt fetcher/limits_test.mbt storage/storage_test.mbt --target native --warn-list -79
+      - name: Real CLI smoke
+        run: moon run tools/cli_smoke.mbtx
