@@ -1,6 +1,9 @@
 ///|
 test "host capacity delays and pause do not block other hosts" {
-  let s = @scheduler.Scheduler::new(@core.Config::default())
+  let s = @scheduler.Scheduler::new({
+    ..@core.Config::default(),
+    allow_any_public_host: true,
+  })
   assert_true(s.acquire("a", 0L))
   assert_false(s.acquire("a", 0L))
   assert_true(s.acquire("b", 0L))

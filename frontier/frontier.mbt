@@ -7,6 +7,7 @@ pub struct Frontier {
   priv delayed : @priority_queue.PriorityQueue[(Int64, String, Int32)]
   priv mut sequence : Int32
   priv mut unfinished : Int32
+  priv dirty : Map[String, @core.Task]
 }
 
 ///|
@@ -19,6 +20,7 @@ pub fn Frontier::new(config : @core.Config) -> Frontier raise @core.CrawlError {
     delayed: @priority_queue.PriorityQueue([]),
     sequence: 0,
     unfinished: 0,
+    dirty: {},
   }
 }
 
@@ -42,7 +44,11 @@ pub fn Frontier::enqueue(
     ready_at: now,
     lease_until: 0L,
     error: "",
+    redirect_url: "",
+    redirect_hops: 0,
+    continuation: false,
   }
+  self.dirty[key] = self.tasks[key]
   self.delayed.push((-now, key, 0))
   self.unfinished += 1
   true
@@ -86,11 +92,13 @@ pub fn Frontier::claim(
       let running = {
         ..task,
         state: Running,
-        attempts: task.attempts + 1,
+        attempts: task.attempts + (if task.continuation { 0 } else { 1 }),
+        continuation: false,
         generation: task.generation + 1,
         lease_until: now + self.config.lease_ms.to_int64(),
       }
       self.tasks[key] = running
+      self.dirty[key] = self.tasks[key]
       Some(running)
     }
   }
@@ -117,6 +125,7 @@ pub fn Frontier::complete(
 ) -> Unit raise @core.CrawlError {
   let (key, current) = self.current(lease)
   self.tasks[key] = { ..current, state: Succeeded, lease_until: 0L, error: "", }
+  self.dirty[key] = self.tasks[key]
   self.unfinished -= 1
 }
 
@@ -142,6 +151,7 @@ pub fn Frontier::fail(
     ready_at: now + retry_delay.unwrap_or(0).max(0).to_int64(),
     error: message,
   }
+  self.dirty[key] = self.tasks[key]
   if state == RetryPending {
     self.delayed.push(
       (
@@ -171,6 +181,7 @@ pub fn Frontier::recover_expired(self : Frontier, now : Int64) -> Int32 {
         lease_until: 0L,
         error: "lease expired",
       }
+      self.dirty[key] = self.tasks[key]
       if task.attempts < self.config.max_attempts {
         self.delayed.push((-now, key, task.generation))
       } else {
@@ -203,6 +214,7 @@ pub fn Frontier::cancel(self : Frontier, url : @url.Url) -> Bool {
   if self.tasks.get(key) is Some(task) &&
     (task.state == Pending || task.state == RetryPending) {
     self.tasks[key] = { ..task, state: Cancelled, }
+    self.dirty[key] = self.tasks[key]
     self.unfinished -= 1
     true
   } else {
@@ -219,18 +231,8 @@ pub fn restore(
 ) -> Frontier raise @core.CrawlError {
   let frontier = Frontier::new(config)
   for t in tasks {
-    let parsed = @url.parse(t.request.url.key()) catch {
-      _ => raise @core.Invalid("corrupt checkpoint URL")
-    }
-    if parsed != t.request.url ||
-      !config.accepts(t.request) ||
-      t.attempts < 0 ||
-      t.attempts > config.max_attempts ||
-      t.generation < t.attempts ||
-      t.ready_at < 0L {
-      raise @core.Invalid("invalid checkpoint task")
-    }
-    let key = parsed.key(include_query=config.include_query)
+    @core.validate_task(config, t)
+    let key = t.request.url.key(include_query=config.include_query)
     if frontier.tasks.contains(key) ||
       frontier.tasks.length() >= config.max_pages {
       raise @core.Invalid("duplicate or oversized checkpoint")

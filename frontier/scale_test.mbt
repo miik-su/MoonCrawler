@@ -1,6 +1,9 @@
 ///|
 test "ten thousand canonical tasks preserve priority uniqueness and cancellation" {
-  let config = { ..@core.Config::default(), max_pages: 10000, }
+  let config = {
+    ..{ ..@core.Config::default(), allow_any_public_host: true, },
+    max_pages: 10000,
+  }
   let f = @frontier.Frontier::new(config)
   for i in 0..<10000 {
     let request : @core.Request = {

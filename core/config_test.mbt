@@ -1,6 +1,6 @@
 ///|
 test "configuration bounds fail before execution" {
-  let c = @core.Config::default()
+  let c = { ..@core.Config::default(), allow_any_public_host: true, }
   c.validate()
   let bad1 = { ..c, concurrency: 0, }
   let bad2 = { ..c, user_agent: "bot\r\nX: y", }

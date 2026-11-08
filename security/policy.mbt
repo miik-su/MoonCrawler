@@ -19,20 +19,31 @@ pub fn public_ipv4(ip : String, allow_loopback~ : Bool = false) -> Bool {
     nums.push(n)
   }
   let a = nums[0]
-  let b = nums[1]
-  let c = nums[2]
   if a == 127 {
     return allow_loopback
   }
-  !(a == 0 ||
-  a == 10 ||
-  a >= 224 ||
-  (a == 100 && b >= 64 && b <= 127) ||
-  (a == 169 && b == 254) ||
-  (a == 172 && b >= 16 && b <= 31) ||
-  (a == 192 && (b == 168 || b == 0 || (b == 88 && c == 99))) ||
-  (a == 198 && (b == 18 || b == 19 || (b == 51 && c == 100))) ||
-  (a == 203 && b == 0 && c == 113))
+  let address = (nums[0].reinterpret_as_uint() << 24) |
+    (nums[1].reinterpret_as_uint() << 16) |
+    (nums[2].reinterpret_as_uint() << 8) |
+    nums[3].reinterpret_as_uint()
+  let denied : Array[(UInt32, Int32)] = [
+    (0x00000000U, 8),
+    (0x0a000000U, 8),
+    (0x64400000U, 10),
+    (0x7f000000U, 8),
+    (0xa9fe0000U, 16),
+    (0xac100000U, 12),
+    (0xc0000000U, 24),
+    (0xc0000200U, 24),
+    (0xc0586300U, 24),
+    (0xc0a80000U, 16),
+    (0xc6120000U, 15),
+    (0xc6336400U, 24),
+    (0xcb007100U, 24),
+    (0xe0000000U, 4),
+    (0xf0000000U, 4),
+  ]
+  !denied.any(range => (address & (0xffffffffU << (32 - range.1))) == range.0)
 }
 
 ///|
@@ -40,7 +51,7 @@ pub fn check_url(
   url : @url.Url,
   config : @core.Config,
 ) -> Unit raise @core.CrawlError {
-  if !@url.allowed(url, config.allowed_hosts) {
+  if !config.host_allowed(url.host) {
     raise @core.Security("host outside allowlist")
   }
   if url.port != 80 &&

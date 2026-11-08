@@ -2,7 +2,7 @@
 struct StaticSite {}
 
 ///|
-impl @fetcher.Fetcher for StaticSite with fn fetch(_self, url, _config) {
+impl @fetcher.UnsafeFetcher for StaticSite with fn fetch(_self, url, _config) {
   let body = if url.path == "/robots.txt" {
     "User-agent: *\nDisallow: /private"
   } else if url.path == "/" {

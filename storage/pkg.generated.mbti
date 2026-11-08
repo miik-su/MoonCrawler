@@ -8,6 +8,8 @@ import {
 }
 
 // Values
+pub fn apply_batch(Snapshot, Array[@core.Task], Array[@core.Page], Int64) -> Snapshot raise @core.CrawlError
+
 pub fn jsonl(Array[@core.Page]) -> String
 
 pub async fn read_snapshot(String) -> Snapshot?
@@ -22,6 +24,7 @@ pub struct FileStore {
   // private fields
 }
 pub fn FileStore::close(Self) -> Unit
+pub async fn FileStore::commit_batch(Self, @core.Config, Array[@core.Task], Array[@core.Page], Int64) -> Unit
 pub async fn FileStore::load(Self) -> Snapshot?
 pub async fn FileStore::open(String) -> Self
 pub async fn FileStore::save(Self, Snapshot) -> Unit
@@ -30,6 +33,7 @@ pub impl Storage for FileStore
 pub struct MemoryStore {
   // private fields
 }
+pub async fn MemoryStore::commit_batch(Self, @core.Config, Array[@core.Task], Array[@core.Page], Int64) -> Unit
 pub async fn MemoryStore::load(Self) -> Snapshot?
 pub fn MemoryStore::new() -> Self
 pub async fn MemoryStore::save(Self, Snapshot) -> Unit
@@ -52,4 +56,5 @@ pub fn Snapshot::to_repr(Self) -> @debug.Repr
 pub(open) trait Storage {
   async fn save(Self, Snapshot) -> Unit
   async fn load(Self) -> Snapshot?
+  async fn commit_batch(Self, @core.Config, Array[@core.Task], Array[@core.Page], Int64) -> Unit = _
 }

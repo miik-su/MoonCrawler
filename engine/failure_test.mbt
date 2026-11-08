@@ -23,7 +23,7 @@ impl @storage.Storage for FailingStore with fn load(self) {
 struct OnePage {}
 
 ///|
-impl @fetcher.Fetcher for OnePage with fn fetch(_self, url, _config) {
+impl @fetcher.UnsafeFetcher for OnePage with fn fetch(_self, url, _config) {
   {
     url,
     status: 200,
@@ -35,7 +35,7 @@ impl @fetcher.Fetcher for OnePage with fn fetch(_self, url, _config) {
 ///|
 async test "checkpoint write failure propagates and previous lease safely replays" {
   let config = {
-    ..@core.Config::default(),
+    ..{ ..@core.Config::default(), allow_any_public_host: true, },
     concurrency: 1,
     per_host: 1,
     max_pages: 1,

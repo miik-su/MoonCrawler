@@ -14,7 +14,7 @@ async test "atomic checkpoint round trip rejects corruption and preserves succes
       }
     },
   )
-  let config = @core.Config::default()
+  let config = { ..@core.Config::default(), allow_any_public_host: true, }
   let f = @frontier.Frontier::new(config)
   assert_true(
     f.enqueue(
@@ -50,7 +50,7 @@ async test "atomic checkpoint round trip rejects corruption and preserves succes
   )
   @fs.write_file(dir + "/checkpoint.tmp", "interrupted write")
   assert_eq(adapter.load().unwrap().tasks.length(), 1)
-  @fs.write_file(dir + "/checkpoint.json", "{broken")
+  @fs.write_file(dir + "/index.json", "{broken")
   assert_true(
     try adapter.load() catch {
       _ => true

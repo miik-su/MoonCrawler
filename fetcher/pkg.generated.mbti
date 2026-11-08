@@ -17,11 +17,11 @@ pub(all) struct CurlFetcher {
 }
 pub async fn CurlFetcher::fetch(Self, @url.Url, @core.Config) -> @core.Response
 pub async fn CurlFetcher::request(Self, @url.Url, @core.Config, verb? : String, headers? : Map[String, String]) -> @core.Response
-pub impl Fetcher for CurlFetcher
+pub impl UnsafeFetcher for CurlFetcher
 
 // Type aliases
 
 // Traits
-pub(open) trait Fetcher {
+pub(open) trait UnsafeFetcher {
   async fn fetch(Self, @url.Url, @core.Config) -> @core.Response
 }

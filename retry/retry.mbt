@@ -18,7 +18,10 @@ pub fn retry_after(value : String, now_ms~ : Int64 = 0L) -> Int32? {
   if s.iter().any(c => c < '0' || c > '9') {
     return http_date_delay(s, now_ms)
   }
-  let n = @string.parse_int(s) catch { _ => return None }
+  let mut n = 0
+  for c in s {
+    n = (n * 10 + c.to_int() - 48).min(86401)
+  }
   if n > 86400 {
     Some(86400000)
   } else {

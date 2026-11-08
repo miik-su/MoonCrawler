@@ -21,6 +21,7 @@ async fn main {
   defer @fs.rmdir(dir, recursive=true)
   ignore(cli(["init", dir + "/config.json"]))
   let config = @fs.read_file(dir + "/config.json").text()
+    .replace(old="\"allowed_hosts\": []", new="\"allowed_hosts\": [\"127.0.0.1\"]")
     .replace(old="\"allow_loopback\": false", new="\"allow_loopback\": true")
     .replace(old="\"delay_ms\": 1000", new="\"delay_ms\": 0")
   @fs.write_file(dir + "/config.json", config)

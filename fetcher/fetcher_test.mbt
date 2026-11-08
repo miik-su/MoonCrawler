@@ -1,7 +1,7 @@
 ///|
 test "response status headers interim response and resource limits" {
   let u = @url.parse("https://example.com")
-  let c = @core.Config::default()
+  let c = { ..@core.Config::default(), allow_any_public_host: true, }
   let r = @fetcher.decode(
     u, b"HTTP/1.1 100 Continue\r\n\r\nHTTP/1.1 429 Too Many\r\nRetry-After: 12\r\nContent-Type: text/html; charset=utf-8\r\n\r\nhello",
     c,

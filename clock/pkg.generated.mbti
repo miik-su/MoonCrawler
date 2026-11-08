@@ -1,0 +1,15 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "miik-su/mooncrawler/clock"
+
+// Values
+pub fn epoch_ms() -> Int64
+
+pub fn tick_ms() -> Int64
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

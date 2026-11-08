@@ -174,11 +174,12 @@ pub fn Rules::sitemaps(self : Rules) -> Array[String] {
 ///|
 pub struct Cache {
   entries : Map[String, (Rules, Int64)]
+  capacity : Int32
 }
 
 ///|
-pub fn Cache::new() -> Cache {
-  { entries: {}, }
+pub fn Cache::new(capacity~ : Int32 = 256) -> Cache {
+  { entries: {}, capacity: capacity.max(1), }
 }
 
 ///|
@@ -198,6 +199,19 @@ pub fn Cache::update(
   body : String,
   now : Int64,
 ) -> Rules {
+  let expired = self.entries
+    .iter()
+    .filter(entry => entry.1.1 <= now)
+    .map(entry => entry.0)
+    .to_array()
+  for key in expired {
+    self.entries.remove(key) |> ignore
+  }
+  if !self.entries.contains(origin) && self.entries.length() >= self.capacity {
+    if self.entries.keys().next() is Some(key) {
+      self.entries.remove(key) |> ignore
+    }
+  }
   let (rules, ttl) = if status >= 200 && status < 300 {
     (parse(body), 86400000L)
   } else if status >= 400 && status < 500 && status != 429 {

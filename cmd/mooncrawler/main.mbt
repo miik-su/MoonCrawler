@@ -10,7 +10,7 @@ async fn config_file(path : String) -> @core.Config {
   if @fs.file_size(path) > 1048576L {
     raise @core.Capacity("config exceeds 1 MiB")
   }
-  let config : @core.Config = @json.from_json(
+  let config : @core.Config = @core.decode_config(
     @json.parse(@fs.read_file(path).text(), reject_duplicate_keys=true),
   )
   config.validate()
@@ -27,7 +27,7 @@ async fn saved_job(directory : String) -> @storage.Snapshot {
 
 ///|
 async fn crawl(
-  config : @core.Config,
+  config : @core.Config?,
   directory : String,
   seeds : Array[String],
   resume_job : Bool,
@@ -36,6 +36,7 @@ async fn crawl(
   defer store.close()
   let adapter : &@storage.Storage = store
   let saved = adapter.load()
+  let config = config.unwrap_or_else(() => saved.unwrap().config)
   if !resume_job && saved is Some(_) {
     raise @core.Invalid("job already exists; use resume or another directory")
   }
@@ -85,13 +86,13 @@ async fn dispatch(args : Array[String]) -> Unit {
       guard args.length() >= 5 else {
         raise @core.Invalid("crawl requires CONFIG.json JOBDIR SEED [SEED ...]")
       }
-      crawl(config_file(args[2]), args[3], args[4:].to_owned(), false)
+      crawl(Some(config_file(args[2])), args[3], args[4:].to_owned(), false)
     }
     "resume" => {
       guard args.length() == 3 else {
         raise @core.Invalid("resume requires JOBDIR")
       }
-      crawl(saved_job(args[2]).config, args[2], [], true)
+      crawl(None, args[2], [], true)
     }
     "pause" => {
       guard args.length() == 3 else {

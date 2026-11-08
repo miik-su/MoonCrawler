@@ -1,5 +1,9 @@
 ///|
 test "only transient responses retry with capped jitter and Retry-After floor" {
+  assert_eq(
+    @retry.retry_after("999999999999999999999999999999"),
+    Some(86400000),
+  )
   assert_true(@retry.retryable(429))
   assert_true(@retry.retryable(503))
   assert_false(@retry.retryable(404))

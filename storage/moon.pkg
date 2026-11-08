@@ -1,6 +1,7 @@
 import {
   "miik-su/mooncrawler/core",
-  "miik-su/mooncrawler/frontier",
+  "moonbitlang/core/env",
+  "moonbitlang/core/string",
   "miik-su/mooncrawler/url",
   "moonbitlang/core/debug",
   "moonbitlang/async/fs",
@@ -10,4 +11,5 @@ import {
 
 import {
   "moonbitlang/async",
+  "miik-su/mooncrawler/frontier",
 } for "test"

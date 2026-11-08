@@ -1,6 +1,9 @@
 ///|
 test "dedup priority fenced lease and bounded recovery" {
-  let f = @frontier.Frontier::new(@core.Config::default())
+  let f = @frontier.Frontier::new({
+    ..@core.Config::default(),
+    allow_any_public_host: true,
+  })
   let a : @core.Request = {
     url: @url.parse("https://example.com"),
     depth: 0,
@@ -25,7 +28,7 @@ test "dedup priority fenced lease and bounded recovery" {
   f.complete(next)
   assert_eq(f.count(Succeeded), 1)
   let restored = @frontier.restore(
-    @core.Config::default(),
+    { ..@core.Config::default(), allow_any_public_host: true, },
     f.snapshot(),
     120001L,
   )

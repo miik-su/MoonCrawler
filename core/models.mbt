@@ -7,6 +7,9 @@ pub(all) suberror CrawlError {
   Network(String)
   Storage(String)
   StaleLease
+  Policy(String)
+  RobotsDenied
+  Paused
 } derive(Debug)
 
 ///|
@@ -25,6 +28,8 @@ pub(all) enum State {
   RetryPending
   PermanentlyFailed
   Cancelled
+  SkippedByPolicy
+  BlockedByRobots
 } derive(Debug, Eq, ToJson, FromJson)
 
 ///|
@@ -36,6 +41,9 @@ pub(all) struct Task {
   ready_at : Int64
   lease_until : Int64
   error : String
+  redirect_url : String
+  redirect_hops : Int32
+  continuation : Bool
 } derive(Debug, ToJson, FromJson)
 
 ///|
@@ -60,6 +68,7 @@ pub(all) struct Page {
 
 ///|
 pub(all) struct Config {
+  schema_version : Int32
   max_depth : Int32
   max_pages : Int32
   concurrency : Int32
@@ -78,11 +87,16 @@ pub(all) struct Config {
   include_query : Bool
   robots : Bool
   allow_loopback : Bool
+  allow_any_public_host : Bool
+  max_robots_redirects : Int32
+  max_robots_bytes : Int32
+  robots_cache_capacity : Int32
 } derive(Debug, Eq, ToJson, FromJson)
 
 ///|
 pub fn Config::default() -> Config {
   {
+    schema_version: 2,
     max_depth: 3,
     max_pages: 1000,
     concurrency: 4,
@@ -101,15 +115,36 @@ pub fn Config::default() -> Config {
     include_query: true,
     robots: true,
     allow_loopback: false,
+    allow_any_public_host: false,
+    max_robots_redirects: 5,
+    max_robots_bytes: 1048576,
+    robots_cache_capacity: 256,
   }
 }
 
 ///|
 pub fn Config::validate(self : Config) -> Unit raise CrawlError {
+  if self.schema_version != 2 {
+    raise Invalid("unsupported config version")
+  }
+  if self.allowed_hosts.is_empty() && !self.allow_any_public_host {
+    raise Invalid(
+      "set allowed_hosts or explicitly enable allow_any_public_host",
+    )
+  }
+  if self.delay_ms > 60000 ||
+    self.max_robots_redirects < 5 ||
+    self.max_robots_redirects > 20 ||
+    self.max_robots_bytes < 512000 ||
+    self.max_robots_bytes > 16777216 ||
+    self.robots_cache_capacity < 1 ||
+    self.robots_cache_capacity > 10000 {
+    raise Invalid("invalid scheduling or robots limits")
+  }
   if self.max_depth < 0 ||
     self.max_depth > 100 ||
     self.max_pages <= 0 ||
-    self.max_pages > 1000000 ||
+    self.max_pages > 100000 ||
     self.concurrency <= 0 ||
     self.concurrency > 128 ||
     self.per_host <= 0 ||
@@ -142,6 +177,7 @@ pub fn Config::validate(self : Config) -> Unit raise CrawlError {
 
 ///|
 pub fn Config::accepts(self : Config, request : Request) -> Bool {
+  self.host_allowed(request.url.host) &&
   request.depth >= 0 &&
   request.depth <= self.max_depth &&
   @url.allowed(
@@ -150,4 +186,13 @@ pub fn Config::accepts(self : Config, request : Request) -> Bool {
     denied_prefixes=self.denied_paths,
     denied_extensions=self.denied_extensions,
   )
+}
+
+///|
+pub fn Config::host_allowed(self : Config, host : String) -> Bool {
+  if self.allowed_hosts.is_empty() {
+    self.allow_any_public_host
+  } else {
+    self.allowed_hosts.contains(host)
+  }
 }

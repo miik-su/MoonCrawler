@@ -1,6 +1,6 @@
 ///|
 /// One hop only: the engine must apply Robots and scheduling to every redirect target.
-pub(open) trait Fetcher {
+pub(open) trait UnsafeFetcher {
   async fn fetch(Self, @url.Url, @core.Config) -> @core.Response
 }
 
@@ -10,10 +10,10 @@ pub(all) struct CurlFetcher {
 }
 
 ///|
-pub extend CurlFetcher with Fetcher::{fetch}
+pub extend CurlFetcher with UnsafeFetcher::{fetch}
 
 ///|
-pub impl Fetcher for CurlFetcher with fn fetch(self, url, config) {
+pub impl UnsafeFetcher for CurlFetcher with fn fetch(self, url, config) {
   self.request(url, config)
 }
 
@@ -58,6 +58,8 @@ pub async fn CurlFetcher::request(
       "\{url.host}:\{url.port}:\{ip}",
       "--include",
       "--compressed",
+      "--write-out",
+      "%{stderr}MOONCRAWLER_REMOTE=%{remote_ip}\n",
       "--user-agent",
       config.user_agent,
     ]
@@ -90,6 +92,9 @@ pub async fn CurlFetcher::request(
       }
       raise @core.Protocol("curl transport exit \{output.exit_code()}")
     }
+    if output.stderr().trim().to_owned() != "MOONCRAWLER_REMOTE=" + ip {
+      raise @core.Security("connected peer differs from pinned destination")
+    }
     decode(url, output.stdout_bytes(), config)
   })
 }
@@ -111,12 +116,20 @@ pub fn decode(
     let head = @utf8.decode(rest[:end].to_owned())
     let lines = head.split("\r\n").to_array()
     let status_parts = lines[0].to_owned().split(" ").to_array()
-    guard status_parts.length() >= 2 && status_parts[0].has_prefix("HTTP/") else {
+    guard status_parts.length() >= 2 &&
+      ["HTTP/1.0", "HTTP/1.1", "HTTP/2", "HTTP/3"].contains(
+        status_parts[0].to_owned(),
+      ) &&
+      status_parts[1].length() == 3 &&
+      status_parts[1].iter().all(c => c >= '0' && c <= '9') else {
       raise @core.Protocol("invalid HTTP status")
     }
     let status = @string.parse_int(status_parts[1])
     if status < 100 || status > 599 {
       raise @core.Protocol("invalid status code")
+    }
+    if status == 101 {
+      raise @core.Protocol("protocol upgrade unsupported")
     }
     offset += end + 4
     if status >= 100 && status < 200 && status != 101 {
@@ -127,12 +140,28 @@ pub fn decode(
       let pair = lines[i].to_owned().split(":").to_array()
       guard pair.length() >= 2 else { raise @core.Protocol("invalid header") }
       let name = pair[0].to_owned().to_lower()
+      if !token(name) || !header_value(lines[i].to_owned()) {
+        raise @core.Protocol(
+          "invalid response header token or control character",
+        )
+      }
       let value = pair[1:].map(x => x.to_owned()).join(":").trim().to_owned()
       if headers.contains(name) &&
-        (name == "location" || name == "content-type") {
+        [
+          "location", "content-type", "content-length", "transfer-encoding", "retry-after",
+        ].contains(name) {
         raise @core.Protocol("ambiguous response header")
       }
-      headers[name] = value
+      if name != "set-cookie" {
+        headers[name] = match headers.get(name) {
+          Some(old) => old + ", " + value
+          None => value
+        }
+      }
+    }
+    if headers.contains("content-length") &&
+      headers.contains("transfer-encoding") {
+      raise @core.Protocol("conflicting HTTP framing fields")
     }
     let raw_body = bytes[offset:].to_owned()
     if raw_body.length() > config.max_body_bytes {

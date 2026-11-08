@@ -5,7 +5,7 @@ struct Fixture {
 }
 
 ///|
-impl @fetcher.Fetcher for Fixture with fn fetch(self, url, _config) {
+impl @fetcher.UnsafeFetcher for Fixture with fn fetch(self, url, _config) {
   self.requests.push(url.key())
   let count = self.counts.get(url.path).unwrap_or(0) + 1
   self.counts[url.path] = count
@@ -44,7 +44,7 @@ impl @fetcher.Fetcher for Fixture with fn fetch(self, url, _config) {
 ///|
 async test "crawl integration discovers deduplicates retries enforces robots and safe redirects then resumes" {
   let config = {
-    ..@core.Config::default(),
+    ..{ ..@core.Config::default(), allow_any_public_host: true, },
     delay_ms: 0,
     allowed_hosts: ["example.com"],
     max_pages: 20,
@@ -55,7 +55,8 @@ async test "crawl integration discovers deduplicates retries enforces robots and
   assert_true(e.seed("https://example.com/"))
   e.run()
   assert_eq(e.frontier.count(Succeeded), 4)
-  assert_eq(e.frontier.count(PermanentlyFailed), 2)
+  assert_eq(e.frontier.count(PermanentlyFailed), 1)
+  assert_eq(e.frontier.count(BlockedByRobots), 1)
   assert_false(fixture.requests.contains("https://example.com/private"))
   assert_false(fixture.requests.contains("http://127.0.0.1/secret"))
   assert_eq(fixture.counts["/retry"], 2)
@@ -70,7 +71,7 @@ async test "crawl integration discovers deduplicates retries enforces robots and
 
 ///|
 async test "cooperative pause leaves pending work and a durable resume point" {
-  let config = @core.Config::default()
+  let config = { ..@core.Config::default(), allow_any_public_host: true, }
   let fixture = Fixture::{ requests: [], counts: {}, }
   let store = @storage.MemoryStore::new()
   let e = @engine.Engine::new(config, fixture, store)

@@ -10,7 +10,7 @@ test "SSRF ranges alternate literals and metadata are denied" {
   }
   assert_true(@security.public_ipv4("8.8.8.8"))
   assert_true(@security.public_ipv4("127.0.0.1", allow_loopback=true))
-  let c = @core.Config::default()
+  let c = { ..@core.Config::default(), allow_any_public_host: true, }
   for
     u in [
       "http://localhost/", "http://metadata.internal/", "http://2130706433/", "https://example.com:8080/",

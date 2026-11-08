@@ -17,7 +17,7 @@ async test "real transport rejects oversized responses and times out stalled ser
         conn.end_response()
       })
       let c = {
-        ..@core.Config::default(),
+        ..{ ..@core.Config::default(), allow_any_public_host: true, },
         allow_loopback: true,
         max_body_bytes: 4,
       }
@@ -43,7 +43,7 @@ async test "real transport rejects oversized responses and times out stalled ser
         @async.sleep(150)
       })
       let c = {
-        ..@core.Config::default(),
+        ..{ ..@core.Config::default(), allow_any_public_host: true, },
         allow_loopback: true,
         timeout_ms: 40,
       }

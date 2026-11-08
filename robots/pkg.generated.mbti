@@ -9,9 +9,10 @@ pub fn parse(String) -> Rules
 // Types and methods
 pub struct Cache {
   entries : Map[String, (Rules, Int64)]
+  capacity : Int32
 }
 pub fn Cache::get(Self, String, Int64) -> Rules?
-pub fn Cache::new() -> Self
+pub fn Cache::new(capacity? : Int32) -> Self
 pub fn Cache::update(Self, String, Int32, String, Int64) -> Rules
 
 pub struct Rules {

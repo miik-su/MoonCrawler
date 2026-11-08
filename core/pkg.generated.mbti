@@ -8,6 +8,11 @@ import {
 }
 
 // Values
+pub fn decode_config(Json) -> Config raise
+
+pub fn upgrade_config(Json) -> Json
+
+pub fn validate_task(Config, Task) -> Unit raise CrawlError
 
 // Errors
 pub(all) suberror CrawlError {
@@ -18,11 +23,15 @@ pub(all) suberror CrawlError {
   Network(String)
   Storage(String)
   StaleLease
+  Policy(String)
+  RobotsDenied
+  Paused
 } derive(@debug.Debug)
 pub fn CrawlError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub(all) struct Config {
+  schema_version : Int32
   max_depth : Int32
   max_pages : Int32
   concurrency : Int32
@@ -41,11 +50,16 @@ pub(all) struct Config {
   include_query : Bool
   robots : Bool
   allow_loopback : Bool
+  allow_any_public_host : Bool
+  max_robots_redirects : Int32
+  max_robots_bytes : Int32
+  robots_cache_capacity : Int32
 } derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 pub fn Config::accepts(Self, Request) -> Bool
 pub fn Config::default() -> Self
 pub fn Config::equal(Self, Self) -> Bool
 pub fn Config::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Config::host_allowed(Self, String) -> Bool
 pub fn Config::not_equal(Self, Self) -> Bool
 pub fn Config::to_json(Self) -> Json
 pub fn Config::to_repr(Self) -> @debug.Repr
@@ -90,6 +104,8 @@ pub(all) enum State {
   RetryPending
   PermanentlyFailed
   Cancelled
+  SkippedByPolicy
+  BlockedByRobots
 } derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 pub fn State::equal(Self, Self) -> Bool
 pub fn State::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
@@ -105,6 +121,9 @@ pub(all) struct Task {
   ready_at : Int64
   lease_until : Int64
   error : String
+  redirect_url : String
+  redirect_hops : Int32
+  continuation : Bool
 } derive(ToJson, @debug.Debug, @json.FromJson)
 pub fn Task::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 pub fn Task::to_json(Self) -> Json

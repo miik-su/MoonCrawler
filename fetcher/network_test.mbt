@@ -18,7 +18,10 @@ async test "real curl transport sends headers and leaves redirects to engine" {
         conn.write("<p>redirect")
         conn.end_response()
       })
-      let config = { ..@core.Config::default(), allow_loopback: true, }
+      let config = {
+        ..{ ..@core.Config::default(), allow_any_public_host: true, },
+        allow_loopback: true,
+      }
       let fetcher : @fetcher.CurlFetcher = { program: "curl", }
       let response = fetcher.request(
         @url.parse("http://127.0.0.1:\{server.addr.port()}/start?x=1"),
