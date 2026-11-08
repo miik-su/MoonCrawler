@@ -4,3 +4,4 @@ import {
   "miik-su/mooncrawler/parser", "miik-su/mooncrawler/pipeline", "miik-su/mooncrawler/storage",
   "miik-su/mooncrawler/security", "miik-su/mooncrawler/retry", "moonbitlang/async",
 }
+options(supported_targets: "native")
