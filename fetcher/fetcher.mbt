@@ -23,7 +23,7 @@ pub async fn CurlFetcher::request(self : CurlFetcher, url : @url.Url, config : @
   @async.with_timeout(config.timeout_ms, () => {
     let ip = @security.resolve_checked(url, config)
     let seconds = (config.timeout_ms.to_double() / 1000.0).to_string()
-    let args = ["--disable", "--silent", "--show-error", "--noproxy", "*", "--proxy", "", "--proto", "=http,https", "--max-redirs", "0", "--connect-timeout", seconds, "--max-time", seconds,
+    let args = ["--disable", "--silent", "--show-error", "--globoff", "--path-as-is", "--noproxy", "*", "--proxy", "", "--proto", "=http,https", "--max-redirs", "0", "--connect-timeout", seconds, "--max-time", seconds,
       "--max-filesize", config.max_body_bytes.to_string(), "--resolve", "\{url.host}:\{url.port}:\{ip}", "--include", "--compressed", "--user-agent", config.user_agent]
     if method == "HEAD" { args.push("--head") }
     for name, value in headers {

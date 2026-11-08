@@ -3,12 +3,16 @@
 pub struct Frontier {
   config : @core.Config
   tasks : Map[String, @core.Task]
+  priv ready : @priority_queue.PriorityQueue[(Int, Int, String, Int)]
+  priv delayed : @priority_queue.PriorityQueue[(Int64, String, Int)]
+  priv mut sequence : Int
+  priv mut unfinished : Int
 }
 
 ///|
 pub fn Frontier::new(config : @core.Config) -> Frontier raise @core.CrawlError {
   config.validate()
-  { config, tasks: {} }
+  { config, tasks: {}, ready: @priority_queue.PriorityQueue([]), delayed: @priority_queue.PriorityQueue([]), sequence: 0, unfinished: 0 }
 }
 
 ///|
@@ -16,20 +20,29 @@ pub fn Frontier::enqueue(self : Frontier, request : @core.Request, now : Int64) 
   let key = request.url.key(include_query=self.config.include_query)
   if !self.config.accepts(request) || self.tasks.contains(key) || self.tasks.length() >= self.config.max_pages { return false }
   self.tasks[key] = { request, state: Pending, attempts: 0, generation: 0, ready_at: now, lease_until: 0L, error: "" }
+  self.delayed.push((-now, key, 0))
+  self.unfinished += 1
   true
 }
 
 ///|
 pub fn Frontier::claim(self : Frontier, now : Int64, eligible? : (@core.Request) -> Bool = _ => true) -> @core.Task? {
-  let mut best : (String, @core.Task)? = None
-  for key, task in self.tasks {
-    if (task.state == Pending || task.state == RetryPending) && task.ready_at <= now && eligible(task.request) {
-      match best {
-        None => best = Some((key, task))
-        Some((_, old)) => if task.request.priority > old.request.priority { best = Some((key, task)) }
-      }
+  while self.delayed.peek() is Some((time, key, generation)) && -time <= now {
+    ignore(self.delayed.pop())
+    if self.tasks.get(key) is Some(task) && task.generation == generation && (task.state == Pending || task.state == RetryPending) {
+      self.sequence += 1
+      self.ready.push((task.request.priority, -self.sequence, key, generation))
     }
   }
+  let blocked : Array[(Int, Int, String, Int)] = []
+  let best = for ;; {
+    guard self.ready.pop() is Some(entry) else { break None }
+    let (_, _, key, generation) = entry
+    guard self.tasks.get(key) is Some(task) && task.generation == generation && (task.state == Pending || task.state == RetryPending) else { continue }
+    if eligible(task.request) { break Some((key, task)) }
+    blocked.push(entry)
+  }
+  for entry in blocked { self.ready.push(entry) }
   match best {
     None => None
     Some((key, task)) => {
@@ -51,13 +64,16 @@ fn Frontier::current(self : Frontier, lease : @core.Task) -> (String, @core.Task
 pub fn Frontier::complete(self : Frontier, lease : @core.Task) -> Unit raise @core.CrawlError {
   let (key, current) = self.current(lease)
   self.tasks[key] = { ..current, state: Succeeded, lease_until: 0L, error: "" }
+  self.unfinished -= 1
 }
 
 ///|
 pub fn Frontier::fail(self : Frontier, lease : @core.Task, now : Int64, message : String, retry_delay? : Int) -> Unit raise @core.CrawlError {
   let (key, current) = self.current(lease)
   let state : @core.State = if retry_delay is Some(_) && current.attempts < self.config.max_attempts { RetryPending } else { PermanentlyFailed }
-  self.tasks[key] = { ..current, state, lease_until: 0L, ready_at: now + retry_delay.unwrap_or(0).to_int64(), error: message }
+  self.tasks[key] = { ..current, state, lease_until: 0L, ready_at: now + retry_delay.unwrap_or(0).max(0).to_int64(), error: message }
+  if state == RetryPending { self.delayed.push((-(now + retry_delay.unwrap_or(0).max(0).to_int64()), key, current.generation)) }
+  else { self.unfinished -= 1 }
 }
 
 ///|
@@ -66,6 +82,8 @@ pub fn Frontier::recover_expired(self : Frontier, now : Int64) -> Int {
   for key, task in self.tasks {
     if task.state == Running && task.lease_until <= now {
       self.tasks[key] = { ..task, state: (if task.attempts < self.config.max_attempts { RetryPending } else { PermanentlyFailed }), ready_at: now, lease_until: 0L, error: "lease expired" }
+      if task.attempts < self.config.max_attempts { self.delayed.push((-now, key, task.generation)) }
+      else { self.unfinished -= 1 }
       count += 1
     }
   }
@@ -82,7 +100,17 @@ pub fn Frontier::count(self : Frontier, state : @core.State) -> Int {
 
 ///|
 pub fn Frontier::has_work(self : Frontier) -> Bool {
-  self.tasks.values().any(t => t.state == Pending || t.state == Running || t.state == RetryPending)
+  self.unfinished > 0
+}
+
+///|
+pub fn Frontier::cancel(self : Frontier, url : @url.Url) -> Bool {
+  let key = url.key(include_query=self.config.include_query)
+  if self.tasks.get(key) is Some(task) && (task.state == Pending || task.state == RetryPending) {
+    self.tasks[key] = { ..task, state: Cancelled }
+    self.unfinished -= 1
+    true
+  } else { false }
 }
 
 ///|
@@ -100,6 +128,10 @@ pub fn restore(config : @core.Config, tasks : Array[@core.Task], now : Int64) ->
       { ..t, state: (if t.attempts < config.max_attempts { RetryPending } else { PermanentlyFailed }), ready_at: now, lease_until: 0L }
     } else { t }
     frontier.tasks[key] = t
+    if t.state == Pending || t.state == RetryPending {
+      frontier.delayed.push((-t.ready_at, key, t.generation))
+      frontier.unfinished += 1
+    }
   }
   frontier
 }

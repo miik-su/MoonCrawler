@@ -9,6 +9,7 @@ test "normalization preserves queries and escaped separators" {
   assert_eq(@url.resolve(a, "../c?x=1").key(), "https://example.com/c?x=1")
   assert_eq(@url.resolve(a, "?x=2").key(), "https://example.com/b?x=2")
   assert_eq(@url.parse("https://example.com/a//b").path, "/a//b")
+  assert_eq(@url.resolve(a, "article?next=https://other.com").key(), "https://example.com/article?next=https://other.com")
   assert_true(
     @url.parse("https://example.com/a?x=1").key() !=
     @url.parse("https://example.com/a?x=2").key(),

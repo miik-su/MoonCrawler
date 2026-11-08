@@ -18,3 +18,12 @@ test "robots failure policy and expiry" {
   assert_true(c.get("https://a", 300000L) is None)
   assert_true(c.update("https://a", 404, "", 0L).allows("bot", "/"))
 }
+
+///|
+test "robots matches UTF8 and unreserved escapes but preserves escaped slashes" {
+  let rules = @robots.parse("User-agent: *\nDisallow: /中文\nDisallow: /%7eprivate\nDisallow: /escaped%2Fpath")
+  assert_false(rules.allows("bot", "/%E4%B8%AD%E6%96%87"))
+  assert_false(rules.allows("bot", "/~private"))
+  assert_false(rules.allows("bot", "/escaped%2fpath"))
+  assert_true(rules.allows("bot", "/escaped/path"))
+}
