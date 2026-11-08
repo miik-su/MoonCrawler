@@ -1,0 +1,1 @@
+import { "miik-su/mooncrawler/core", "miik-su/mooncrawler/url", "moonbitlang/core/string", "moonbitlang/async/socket" }
