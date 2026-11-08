@@ -1,0 +1,6 @@
+import {
+  "miik-su/mooncrawler/core", "miik-su/mooncrawler/url", "miik-su/mooncrawler/frontier",
+  "miik-su/mooncrawler/scheduler", "miik-su/mooncrawler/robots", "miik-su/mooncrawler/fetcher",
+  "miik-su/mooncrawler/parser", "miik-su/mooncrawler/pipeline", "miik-su/mooncrawler/storage",
+  "miik-su/mooncrawler/security", "miik-su/mooncrawler/retry", "moonbitlang/async",
+}

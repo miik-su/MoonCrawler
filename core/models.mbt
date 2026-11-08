@@ -4,6 +4,7 @@ pub(all) suberror CrawlError {
   Security(String)
   Capacity(String)
   Protocol(String)
+  Network(String)
   Storage(String)
   StaleLease
 } derive(Debug)
@@ -77,7 +78,7 @@ pub(all) struct Config {
   include_query : Bool
   robots : Bool
   allow_loopback : Bool
-} derive(Debug, ToJson, FromJson)
+} derive(Debug, Eq, ToJson, FromJson)
 
 ///|
 pub fn Config::default() -> Config {

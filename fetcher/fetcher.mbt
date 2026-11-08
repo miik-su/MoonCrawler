@@ -1,6 +1,6 @@
 ///|
 /// One hop only: the engine must apply Robots and scheduling to every redirect target.
-pub trait Fetcher {
+pub(open) trait Fetcher {
   async fetch(Self, @url.Url, @core.Config) -> @core.Response
 }
 
@@ -34,7 +34,10 @@ pub async fn CurlFetcher::request(self : CurlFetcher, url : @url.Url, config : @
     }
     args.push("--url"); args.push(url.key())
     let output = @shell.Cmd(self.program, args).output(timeout_ms=config.timeout_ms, max_output_bytes=config.max_body_bytes + config.max_header_bytes + 4096)
-    if output.exit_code() != 0 { raise @core.Protocol("curl transport exit \{output.exit_code()}") }
+    if output.exit_code() != 0 {
+      if [5, 6, 7, 18, 28, 52, 55, 56].contains(output.exit_code()) { raise @core.Network("curl transport exit \{output.exit_code()}") }
+      raise @core.Protocol("curl transport exit \{output.exit_code()}")
+    }
     decode(url, output.stdout_bytes(), config)
   })
 }

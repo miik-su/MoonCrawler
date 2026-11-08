@@ -1,5 +1,5 @@
 ///|
-pub trait Parser {
+pub(open) trait Parser {
   parse(Self, @core.Response) -> @core.Page raise
 }
 

@@ -1,5 +1,5 @@
 ///|
-pub trait Processor {
+pub(open) trait Processor {
   process(Self, @core.Page) -> @core.Page? raise
 }
 

@@ -8,7 +8,7 @@ pub(all) struct Snapshot {
 } derive(ToJson, FromJson, Debug)
 
 ///|
-pub trait Storage {
+pub(open) trait Storage {
   async save(Self, Snapshot) -> Unit
   async load(Self) -> Snapshot?
 }
