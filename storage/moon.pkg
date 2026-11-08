@@ -1,0 +1,4 @@
+import {
+  "miik-su/mooncrawler/core", "miik-su/mooncrawler/frontier", "miik-su/mooncrawler/url",
+  "moonbitlang/async", "moonbitlang/async/fs", "moonbitlang/core/json", "moonbitlang/core/encoding/utf8",
+}
