@@ -12,6 +12,7 @@ No third-party source was copied into the implementation.
 | curl executable | external, tested 8.21.0 | HTTP/TLS and decompression | curl license |
 
 Dependency license files remain in `.mooncakes/` after installation. curl is not redistributed.
+The external curl license is published at https://curl.se/docs/copyright.html .
 
 Architectural references (concepts only):
 

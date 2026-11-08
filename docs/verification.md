@@ -3,6 +3,19 @@
 MoonBit `0.10.17+d971670cd`, moon `0.1.20261023`, Windows native, curl `8.21.0`.
 Only selected tests ran; no unfiltered `moon test` or full dependency suite.
 
+## 0.2 audit regressions
+
+See [remediation evidence](audit-upgrade.md). The final selected regression run
+passed 18 tests across affected scope, migration, queue, retry, engine, HTTP,
+journal and deterministic mutation files. Separate capacity, identity/gap,
+filesystem, cache and gzip tests also passed. The 65 MiB segmented checkpoint
+round-trip passed; it is not a throughput benchmark. CLI smoke passed with the
+new default-deny configuration and journal recovery.
+
+Full suite and three-platform checks are available only through the manual release
+workflow. They were not invoked. The TLS server fixture is Unix-only and remains
+a CI verification gate. The bounded mutation corpus is not a coverage-guided fuzz campaign.
+
 | Selected file | Evidence |
 | --- | --- |
 | url/url_test.mbt | normalization, escaped separators, relative links and rejection |

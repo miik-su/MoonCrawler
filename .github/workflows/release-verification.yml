@@ -1,0 +1,32 @@
+name: Manual cross-platform release verification
+on:
+  workflow_dispatch:
+    inputs:
+      full_suite:
+        description: Explicitly run the full project suite (not dependency suites)
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022, macos-14]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: hustcer/setup-moonbit@v1.22
+        with:
+          version: '0.10.17+d971670cd'
+          core-version: '0.10.17+d971670cd'
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libssl-dev curl
+      - run: moon update
+      - run: moon check --target native
+      - run: moon test core/scope_test.mbt engine/policy_test.mbt engine/fairness_test.mbt storage/journal_test.mbt storage/file_safety_test.mbt fetcher/network_test.mbt fetcher/attack_test.mbt --target native
+      - if: inputs.full_suite
+        run: moon test --target native
+      - run: moon run tools/cli_smoke.mbtx

@@ -1,6 +1,6 @@
 # Supported scope and remaining work
 
-This is a working 0.1 static crawler, not a completed 1.0 certification.
+This is a working 0.2 static crawler, not a completed 1.0 certification.
 P0/P1 modules have executable implementations; broader acceptance, portability
 and performance verification remain release gates.
 
@@ -20,21 +20,22 @@ and performance verification remain release gates.
 | Resource bounds | body default 2 MiB; parser 512K UTF-16 units, 100K nodes after construction, 10K links/images each |
 | Frontier | default 1000 discovered tasks total, including terminal states; rejects excess discovery as backpressure |
 | Scheduler | worker and host slots, request-start spacing including Robots/redirects; host limits enable multi-site progress |
-| Storage | single locked directory; whole-job snapshot <=64 MiB; larger jobs need custom transactional storage |
+| Storage | locked trusted directory; incremental batches and segmented checkpoints; 16 MiB per record; aggregate above 64 MiB tested |
 | Resume | successes retained, interrupted workers retry; host cooldown/Robots cache restart from configuration |
 | Cookie/proxy | disabled by default; custom adapters can implement explicit sessions with equivalent safety |
 | Monitoring | persisted states, attempts, errors, save time; CLI page/state counters; no metrics server/tracing exporter |
 
 The upstream HTML parser has no preallocation/node budget or cancellation hook.
 Input is bounded, but pathological HTML needs further fuzzing and profiling.
-Whole-job snapshots favor correctness and a simple 0.1 format, not million-page crawls.
+Jobs remain in memory during execution/recovery. The 100K task ceiling is a bound,
+not a measured throughput or memory guarantee. See [audit status](audit-upgrade.md).
 
 ## Deferred release gates
 
 - Multi-OS HTTPS certificate-failure/rebinding fixtures.
 - GBK decoder, optional cookie sessions and proxy adapters.
 - Metrics/logging exporters, HTML fuzz corpus and 100K-task benchmarks.
-- Directory metadata crash durability and incremental storage.
+- Directory metadata power-loss durability and additional platform crash fixtures.
 - Mooncakes publication and signed release artifacts.
 
 P2: XML Sitemap crawling (declarations already extracted), conditional/incremental

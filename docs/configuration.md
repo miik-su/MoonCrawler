@@ -1,25 +1,30 @@
 # Configuration
 
-`init CONFIG.json` writes all required fields. Config is a strict, versioned-by-code
-MoonBit record; unknown JSON keys are ignored by FromJson, missing required fields
+`init CONFIG.json` writes schema version 2. `core.decode_config` migrates known
+0.1 keys without implicitly allowing arbitrary hosts. Missing unrelated required fields
 are errors. `validate` checks bounds before network activity. Use the saved config
 when resuming. No credentials are saved by the bundled adapter.
 
 | Field | Default | Meaning |
 | --- | --- | --- |
 | max_depth | 3 | seed depth 0; accepted range 0..100 |
-| max_pages | 1000 | total discovered task budget, 1..1,000,000 |
+| max_pages | 1000 | total discovered task budget, 1..100,000 |
 | concurrency | 4 | async workers, 1..128 |
 | per_host | 1 | simultaneous requests per host, 1..concurrency |
-| delay_ms | 1000 | minimum request-start interval per host |
+| delay_ms | 1000 | minimum request-start interval per host, 0..60000ms |
 | timeout_ms | 15000 | whole-hop deadline, up to 300000ms |
 | max_body_bytes | 2097152 | decompressed body limit, up to 16 MiB |
 | max_header_bytes | 65536 | total header limit, up to 1 MiB |
-| max_redirects | 5 | each page/Robots redirect chain, 0..20 |
+| max_redirects | 5 | page redirect chain, 0..20 |
+| max_robots_redirects | 5 | independent Robots redirect chain, 5..20 |
+| max_robots_bytes | 1048576 | independent Robots body budget, 512000..16777216 |
+| robots_cache_capacity | 256 | bounded Origin cache, 1..10000; expired entries removed first |
 | max_attempts | 3 | total attempts including first, 1..10 |
-| lease_ms | 120000 | lease duration; must exceed twice timeout_ms |
+| lease_ms | 120000 | Frontier library deadline; Engine uses restart recovery, not runtime lease stealing |
 | user_agent | MoonCrawler/0.1 | crawler product token/version, no CR/LF |
-| allowed_hosts | [] | exact normalized hostname allowlist; empty permits public destinations |
+| allowed_hosts | [] | exact normalized hostname allowlist; empty is rejected by default |
+| allow_any_public_host | false | explicit opt-in to open public crawling when allowlist is empty |
+| schema_version | 2 | known legacy keys migrated; unsupported versions rejected |
 | denied_paths | [] | case-sensitive URL path prefixes |
 | denied_extensions | .pdf,.zip,.png,.jpg,.js,.css | case-insensitive path suffixes |
 | include_query | true | query participates in dedup; false deliberately merges query variants |
@@ -36,7 +41,8 @@ that many successful pages. Rejected links are skipped. Snapshot and parser boun
 apply independently. Default file storage is intended for bounded single-process jobs.
 
 `pause JOBDIR` writes a cooperative stop marker. It is a request, not immediate
-termination; current hops/retries finish their current task and then checkpoint.
+termination; current network calls may finish. Scheduling waits check the stop marker,
+release admission and requeue their task. Delayed redirects are already durable.
 `resume JOBDIR` clears that marker while holding the exclusive job lock.
 
 Errors in a page are persisted in its Task and may produce a terminal failure while

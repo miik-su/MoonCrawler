@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0
+
+- Default-deny crawl scope, explicit UnsafeFetcher trust boundary and actual peer checks.
+- Per-hop policy enforcement, persistent Retry-After continuations and uncached 304 rejection.
+- Bounded Robots cache, per-origin flights, independent limits and host admission.
+- Epoch persistence, versioned config migration and separate skipped/blocked states.
+- Incremental checksummed journal, segmented compaction and bounded filesystem reads.
+- Security/contribution/use policies and focused adversarial regression fixtures.
+- See docs/audit-upgrade.md for evidence and remaining release-certification gates.
+
 ## 0.1.0 — 2026-11-08
 
 Initial staged implementation from the MoonCrawler design conversation:

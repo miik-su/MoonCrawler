@@ -20,8 +20,8 @@ jobs:
       - run: moon info --target native
       - run: git diff --exit-code -- '*.mbti'
       - name: Selected queue and policy checks
-        run: moon test frontier/scale_test.mbt robots/robots_test.mbt security/security_test.mbt --target native --warn-list -79
+        run: moon test core/scope_test.mbt core/migration_test.mbt frontier/redirect_test.mbt robots/capacity_test.mbt security/boundary_test.mbt fuzz/corpus_test.mbt --target native
       - name: Selected integration and failure checks
-        run: moon test engine/engine_test.mbt engine/failure_test.mbt fetcher/network_test.mbt fetcher/limits_test.mbt storage/storage_test.mbt --target native --warn-list -79
+        run: moon test engine/policy_test.mbt engine/fairness_test.mbt engine/robots_limits_test.mbt engine/failure_test.mbt fetcher/headers_test.mbt fetcher/attack_test.mbt storage/journal_test.mbt storage/file_safety_test.mbt --target native
       - name: Real CLI smoke
         run: moon run tools/cli_smoke.mbtx
