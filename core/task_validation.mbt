@@ -1,5 +1,9 @@
 ///|
 pub fn validate_task(config : Config, t : Task) -> Unit raise CrawlError {
+  if t.continuation &&
+    (t.attempts < 1 || t.redirect_hops < 1 || t.redirect_url.is_empty()) {
+    raise Invalid("invalid redirect continuation")
+  }
   if t.redirect_hops < 0 || t.redirect_hops > config.max_redirects {
     raise Invalid("invalid redirect checkpoint")
   }

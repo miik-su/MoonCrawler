@@ -1,17 +1,14 @@
 ///|
 fn usage() -> Unit {
   println(
-    "MoonCrawler 0.1\n  init CONFIG.json\n  validate CONFIG.json\n  crawl CONFIG.json JOBDIR SEED [SEED ...]\n  resume JOBDIR\n  pause JOBDIR\n  status JOBDIR\n  stats JOBDIR\n  export JOBDIR OUTPUT.jsonl",
+    "MoonCrawler 0.2\n  init CONFIG.json\n  validate CONFIG.json\n  crawl CONFIG.json JOBDIR SEED [SEED ...]\n  resume JOBDIR\n  pause JOBDIR\n  status JOBDIR\n  stats JOBDIR\n  export JOBDIR OUTPUT.jsonl",
   )
 }
 
 ///|
 async fn config_file(path : String) -> @core.Config {
-  if @fs.file_size(path) > 1048576L {
-    raise @core.Capacity("config exceeds 1 MiB")
-  }
   let config : @core.Config = @core.decode_config(
-    @json.parse(@fs.read_file(path).text(), reject_duplicate_keys=true),
+    @json.parse(@storage.read_text(path), reject_duplicate_keys=true),
   )
   config.validate()
   config
@@ -112,14 +109,29 @@ async fn dispatch(args : Array[String]) -> Unit {
         let state = @json.to_json(task.state).stringify()
         counts[state] = counts.get(state).unwrap_or(0) + 1
       }
-      println(
-        @json.to_json({
-          "version": @json.to_json(saved.version),
-          "saved_at": @json.to_json(saved.saved_at),
-          "pages": @json.to_json(saved.pages.length()),
-          "tasks": @json.to_json(counts),
-        }).stringify(indent=2),
-      )
+      let output : Map[String, Json] = {
+        "version": @json.to_json(saved.version),
+        "saved_at": @json.to_json(saved.saved_at),
+        "pages": @json.to_json(saved.pages.length()),
+        "tasks": @json.to_json(counts),
+      }
+      if args[1] == "stats" {
+        let mut attempts = 0
+        let mut retries = 0
+        for task in saved.tasks {
+          attempts += task.attempts
+          retries += (task.attempts - 1).max(0)
+        }
+        output["task_attempts"] = @json.to_json(attempts)
+        output["task_retries"] = @json.to_json(retries)
+      } else {
+        output["errors"] = @json.to_json(
+          saved.tasks
+          .filter(t => !t.error.is_empty())
+          .map(t => { "url": t.request.url.key(), "reason": t.error }),
+        )
+      }
+      println(@json.to_json(output).stringify(indent=2))
     }
     "export" => {
       guard args.length() == 4 else {

@@ -237,7 +237,8 @@ pub fn restore(
       frontier.tasks.length() >= config.max_pages {
       raise @core.Invalid("duplicate or oversized checkpoint")
     }
-    let t = if t.state == Running {
+    let was_running = t.state == Running
+    let t = if was_running {
       {
         ..t,
         state: if t.attempts < config.max_attempts {
@@ -252,6 +253,9 @@ pub fn restore(
       t
     }
     frontier.tasks[key] = t
+    if was_running {
+      frontier.dirty[key] = t
+    }
     if t.state == Pending || t.state == RetryPending {
       frontier.delayed.push((-t.ready_at, key, t.generation))
       frontier.unfinished += 1

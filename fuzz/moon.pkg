@@ -1,0 +1,11 @@
+import {
+  "miik-su/mooncrawler/url",
+  "miik-su/mooncrawler/robots",
+  "miik-su/mooncrawler/fetcher",
+  "miik-su/mooncrawler/core",
+  "moonbitlang/core/encoding/utf8",
+} for "test"
+
+options(
+  supported_targets: "native",
+)

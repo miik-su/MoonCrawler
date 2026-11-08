@@ -1,5 +1,10 @@
 ///|
 test "agent groups longest rule allow ties wildcards and anchors" {
+  assert_true(
+    @robots.parse("User-agent: *\nDisallow: /a****\nAllow: /ab").allows(
+      "bot", "/ab",
+    ),
+  )
   let rules = @robots.parse(
     "User-agent: *\nDisallow: /\nUser-agent: MoonCrawler\nDisallow: /private*\nAllow: /private/public\nDisallow: /*.pdf$\nUser-agent: MoonCrawler\nAllow: /private/public\nSitemap: https://example.com/map.xml",
   )

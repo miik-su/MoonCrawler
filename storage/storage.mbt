@@ -55,6 +55,8 @@ pub struct FileStore {
   directory : String
   priv lock_file : @fs.File
   priv mut sequence : Int32
+  priv mut job_id : String
+  priv mut job_config : @core.Config?
 }
 
 ///|
@@ -71,12 +73,13 @@ pub async fn FileStore::open(directory : String) -> FileStore {
     directory + "/job.lock",
     mode=ReadWrite,
     create_mode=OpenOrCreate,
+    permission=0o600,
   )
   errdefer lock_file.close()
   if !lock_file.try_lock(Exclusive) {
     raise @core.Storage("job directory already locked")
   }
-  { directory, lock_file, sequence: 0, }
+  { directory, lock_file, sequence: 0, job_id: "", job_config: None, }
 }
 
 ///|
@@ -92,19 +95,29 @@ pub impl Storage for FileStore with fn save(self, snapshot) {
 
 ///|
 pub impl Storage for FileStore with fn load(self) {
-  let (snapshot, sequence) = recover(self.directory)
+  let (snapshot, sequence, job_id) = recover(self.directory)
   self.sequence = sequence
+  self.job_id = if job_id.is_empty() { nonce() } else { job_id }
+  self.job_config = snapshot.map(s => s.config)
+  if snapshot is Some(saved) && !@fs.exists(self.directory + "/index.json") {
+    self.write_checkpoint(saved)
+  }
   snapshot
 }
 
 ///|
 /// Atomic snapshot reads can be used by status while the writer owns the job lock.
 pub async fn read_snapshot(directory : String) -> Snapshot? {
-  recover(directory).0
+  recover(directory).0 catch {
+    _ => recover(directory).0
+  }
 }
 
 ///|
 pub fn validate(snapshot : Snapshot) -> Unit raise @core.CrawlError {
+  if snapshot.saved_at < 0L {
+    raise @core.Storage("negative checkpoint time")
+  }
   if snapshot.version != 1 {
     raise @core.Storage("unsupported checkpoint version")
   }

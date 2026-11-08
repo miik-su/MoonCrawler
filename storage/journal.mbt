@@ -1,5 +1,6 @@
 ///|
 priv struct Index {
+  job_id : String
   format : Int32
   sequence : Int32
   config : @core.Config
@@ -9,6 +10,7 @@ priv struct Index {
 
 ///|
 priv struct Delta {
+  job_id : String
   sequence : Int32
   tasks : Array[@core.Task]
   pages : Array[@core.Page]
@@ -79,9 +81,17 @@ async fn atomic_file(
   text : String,
   replace~ : Bool = false,
 ) -> Unit {
+  if @utf8.encode(text).length() > 16777216 {
+    raise @core.Capacity("job record exceeds write limit")
+  }
   let temp = directory + "/staging-" + nonce() + ".tmp"
   @fs.write_file(temp, text, create_mode=CreateNew, permission=0o600, sync=Full)
   @fs.rename(temp, directory + "/" + name, replace~)
+}
+
+///|
+pub async fn read_text(path : String, limit~ : Int32 = 1048576) -> String {
+  bounded_read(path, limit~)
 }
 
 ///|
@@ -120,6 +130,9 @@ async fn FileStore::write_checkpoint(
   snapshot : Snapshot,
 ) -> Unit {
   validate(snapshot)
+  if self.job_id.is_empty() {
+    self.job_id = nonce()
+  }
   let prefix = "shard-" + nonce()
   let shards : Array[String] = []
   for i = 0; i < snapshot.tasks.length(); i = i + 128 {
@@ -130,6 +143,7 @@ async fn FileStore::write_checkpoint(
       name,
       wrap(
         @json.to_json(Delta::{
+          job_id: self.job_id,
           sequence: self.sequence,
           tasks,
           pages: [],
@@ -146,6 +160,7 @@ async fn FileStore::write_checkpoint(
       name,
       wrap(
         @json.to_json(Delta::{
+          job_id: self.job_id,
           sequence: self.sequence,
           tasks: [],
           pages: [page],
@@ -156,6 +171,7 @@ async fn FileStore::write_checkpoint(
     shards.push(name)
   }
   let index = Index::{
+    job_id: self.job_id,
     format: 2,
     sequence: self.sequence,
     config: snapshot.config,
@@ -168,6 +184,23 @@ async fn FileStore::write_checkpoint(
     wrap(@json.to_json(index)),
     replace=true,
   )
+  self.job_config = Some(snapshot.config)
+  for name in @fs.readdir(self.directory) {
+    let old_shard = name.has_prefix("shard-") &&
+      name.has_suffix(".json") &&
+      !name.has_prefix(prefix)
+    let old_event = if name.has_prefix("event-") && name.has_suffix(".json") {
+      let seq = @string.parse_int(name[6:name.length() - 5]) catch { _ => -1 }
+      seq >= 0 && seq <= self.sequence
+    } else {
+      false
+    }
+    if old_shard || old_event {
+      @fs.remove(self.directory + "/" + name) catch {
+        _ => ()
+      }
+    }
+  }
 }
 
 ///|
@@ -179,12 +212,25 @@ pub impl Storage for FileStore with fn commit_batch(
   now,
 ) {
   config.validate()
+  guard self.job_config is Some(current) &&
+    current == config &&
+    !self.job_id.is_empty() else {
+    raise @core.Storage(
+      "journal requires an initialized job with unchanged config",
+    )
+  }
   for task in tasks {
     @core.validate_task(config, task)
   }
   let sequence = self.sequence + 1
   let record = wrap(
-    @json.to_json(Delta::{ sequence, tasks, pages, saved_at: now, }),
+    @json.to_json(Delta::{
+      job_id: self.job_id,
+      sequence,
+      tasks,
+      pages,
+      saved_at: now,
+    }),
   )
   if @utf8.encode(record).length() > 16777216 {
     raise @core.Capacity("incremental batch exceeds 16 MiB")
@@ -194,16 +240,16 @@ pub impl Storage for FileStore with fn commit_batch(
 }
 
 ///|
-async fn recover(directory : String) -> (Snapshot?, Int32) {
+async fn recover(directory : String) -> (Snapshot?, Int32, String) {
   if !@fs.exists(directory + "/index.json") {
     if !@fs.exists(directory + "/checkpoint.json") {
-      return (None, 0)
+      return (None, 0, "")
     }
     let legacy = decode_snapshot(
       @json.parse(bounded_read(directory + "/checkpoint.json", limit=67108864)),
     )
     validate(legacy)
-    return (Some(legacy), 0)
+    return (Some(legacy), 0, "")
   }
   let index : Index = @json.from_json(unwrapped(directory + "/index.json"))
   if index.format != 2 || index.sequence < 0 {
@@ -223,7 +269,7 @@ async fn recover(directory : String) -> (Snapshot?, Int32) {
       raise @core.Storage("invalid shard path")
     }
     let shard : Delta = @json.from_json(unwrapped(directory + "/" + name))
-    if shard.sequence != index.sequence {
+    if shard.sequence != index.sequence || shard.job_id != index.job_id {
       raise @core.Storage("checkpoint sequence mismatch")
     }
     for task in shard.tasks {
@@ -253,7 +299,7 @@ async fn recover(directory : String) -> (Snapshot?, Int32) {
     let delta : Delta = @json.from_json(
       unwrapped(directory + "/event-\{seq}.json"),
     )
-    if delta.sequence != seq {
+    if delta.sequence != seq || delta.job_id != index.job_id {
       raise @core.Storage("journal sequence mismatch")
     }
     for task in delta.tasks {
@@ -271,5 +317,5 @@ async fn recover(directory : String) -> (Snapshot?, Int32) {
     pages: pages.values().to_array(),
   }
   validate(snapshot)
-  (Some(snapshot), sequence)
+  (Some(snapshot), sequence, index.job_id)
 }

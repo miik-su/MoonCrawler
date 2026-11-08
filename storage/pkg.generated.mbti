@@ -14,6 +14,8 @@ pub fn jsonl(Array[@core.Page]) -> String
 
 pub async fn read_snapshot(String) -> Snapshot?
 
+pub async fn read_text(String, limit? : Int32) -> String
+
 pub fn validate(Snapshot) -> Unit raise @core.CrawlError
 
 // Errors

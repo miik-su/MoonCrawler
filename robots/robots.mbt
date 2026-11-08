@@ -153,9 +153,13 @@ pub fn Rules::allows(self : Rules, agent : String, path : String) -> Bool {
     for (pattern, allow) in group.rules {
       let pattern = octets(pattern)
       if matches(pattern, path) {
-        let score = @utf8.encode(
-          pattern.replace(old="*", new="").replace(old="$", new=""),
-        ).length()
+        let literal = pattern.replace_all(old="*", new="")
+        let literal = if literal.has_suffix("$") {
+          literal[:literal.length() - 1].to_owned()
+        } else {
+          literal
+        }
+        let score = @utf8.encode(literal).length()
         if score > best || (score == best && allow) {
           best = score
           allowed = allow
