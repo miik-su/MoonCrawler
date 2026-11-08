@@ -1,0 +1,4 @@
+import {
+  "miik-su/mooncrawler/core", "miik-su/mooncrawler/url",
+  "moonbit-community/html",
+}
