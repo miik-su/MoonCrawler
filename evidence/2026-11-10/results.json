@@ -1,0 +1,87 @@
+{
+  "source_revision": "f21e8818a38ed5b7a232dea37ddb674f79be1e52",
+  "source_dirty_at_start": false,
+  "full_suite": false,
+  "orchestration_platform": "Windows",
+  "project_target": "native",
+  "groups": [
+    {
+      "group": "contracts",
+      "arguments": [
+        "test",
+        "storage/page_validation_test.mbt",
+        "engine/contracts_test.mbt",
+        "--target",
+        "native",
+        "--warn-list",
+        "-29-79"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "1567"
+    },
+    {
+      "group": "resources",
+      "arguments": [
+        "test",
+        "robots/resource_test.mbt",
+        "robots/capacity_test.mbt",
+        "storage/capacity_test.mbt",
+        "--target",
+        "native",
+        "--warn-list",
+        "-29-79"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "43953"
+    },
+    {
+      "group": "queue",
+      "arguments": [
+        "test",
+        "frontier/host_load_test.mbt",
+        "frontier/frontier_test.mbt",
+        "engine/fairness_test.mbt",
+        "--target",
+        "native",
+        "--warn-list",
+        "-29-79"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "1252"
+    },
+    {
+      "group": "protocol",
+      "arguments": [
+        "test",
+        "retry/date_formats_test.mbt",
+        "retry/retry_test.mbt",
+        "security/resolver_test.mbt",
+        "fetcher/headers_test.mbt",
+        "--target",
+        "native",
+        "--warn-list",
+        "-29-79"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "1324"
+    },
+    {
+      "group": "persistence",
+      "arguments": [
+        "test",
+        "storage/journal_test.mbt",
+        "storage/identity_test.mbt",
+        "engine/failure_test.mbt",
+        "--target",
+        "native",
+        "--warn-list",
+        "-29-79"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "182"
+    }
+  ],
+  "model_exit": 0,
+  "cli_exit": 0,
+  "toolchain": "moon 0.1.20261023 (3778465 2026-10-23) ~\\.moon\\bin\\moon.exe\nmoonc v0.10.17+d971670cd (2026-10-23) \\\\?\\<user>\\.moon\\bin\\moonc.exe\nmoonrun 0.1.20261023 (3778465 2026-10-23) \\\\?\\<user>\\.moon\\bin\\moonrun.exe\n\nFeature flags enabled: rr_moon_mod,rr_moon_pkg\n"
+}

@@ -1,0 +1,13 @@
+{
+  "model": "host-blocked-100k",
+  "tasks": 100000,
+  "blocked_host_tasks": 99999,
+  "eligible_host_tasks": 1,
+  "selected_host": "b.example",
+  "initial_candidate_checks": 2,
+  "subsequent_polls": 100,
+  "subsequent_candidate_checks": 100,
+  "wall_elapsed_ms": "712",
+  "network_requests": 0,
+  "cpu_time_measured": false
+}
