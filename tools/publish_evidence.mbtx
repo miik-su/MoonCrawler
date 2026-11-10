@@ -1,0 +1,56 @@
+----
+import {
+  "moonbitlang/async@0.22.5", "moonbitlang/async@0.22.5/shell", "moonbitlang/async@0.22.5/fs",
+  "moonbitlang/core/json", "moonbitlang/core/env",
+}
+----
+async fn run(program : String, args : Array[String]) -> (Int, String) {
+  let out = @shell.Cmd(program, args).output(timeout_ms=300000, max_output_bytes=8388608)
+  let text = (out.stdout() + out.stderr()).replace_all(old="C:\\Users\\MIKE", new="<user>").replace_all(old="C:/Users/MIKE", new="<user>")
+  (out.exit_code(), text)
+}
+async fn main {
+  let revision = run("git", ["rev-parse", "HEAD"]).1.trim().to_owned()
+  let dirty = !run("git", ["status", "--porcelain", "--", ".", ":(exclude)evidence"]).1.trim().is_empty()
+  let versions = run("moon", ["version", "--all"]).1
+  let platform = match @async.platform { Windows => "Windows"; Linux => "Linux"; MacOS => "macOS" }
+  let groups : Array[(String, Array[String])] = [
+    ("contracts", ["storage/page_validation_test.mbt", "engine/contracts_test.mbt"]),
+    ("resources", ["robots/resource_test.mbt", "robots/capacity_test.mbt", "storage/capacity_test.mbt"]),
+    ("queue", ["frontier/host_load_test.mbt", "frontier/frontier_test.mbt", "engine/fairness_test.mbt"]),
+    ("protocol", ["retry/date_formats_test.mbt", "retry/retry_test.mbt", "security/resolver_test.mbt", "fetcher/headers_test.mbt"]),
+    ("persistence", ["storage/journal_test.mbt", "storage/identity_test.mbt", "engine/failure_test.mbt"]),
+  ]
+  let rows : Array[Json] = []
+  let logs : Array[(String, String)] = []
+  let summary = StringBuilder()
+  summary.write_string("# Focused test evidence — 2026-11-10\n\nTested source: `" + revision + "`\n\nFull suite: **not run**. Runner: " + platform + ". Selected project tests use native; orchestration uses MoonBit script mode. Results describe fixtures, not security certification.\n\n| Group | Exit | Elapsed ms | Raw log |\n| --- | ---: | ---: | --- |\n")
+  let mut failed = false
+  for (name, files) in groups {
+    let args = ["test"]
+    args.append(files)
+    args.append(["--target", "native", "--warn-list", "-29-79"])
+    let start = @env.now()
+    let (code, log) = run("moon", args)
+    let elapsed = @env.now() - start
+    if code != 0 { failed = true }
+    rows.push({"group": name, "arguments": @json.to_json(args), "exit_code": code, "wall_elapsed_ms": @json.to_json(elapsed)})
+    logs.push((name + ".log", log))
+    summary.write_string("| " + name + " | " + code.to_string() + " | " + elapsed.to_string() + " | [log](" + name + ".log) |\n")
+  }
+  let (model_code, model) = run("moon", ["run", "cmd/evidence", "--target", "native", "--quiet"])
+  if model_code == 0 { @json.parse(model) |> ignore }
+  let (cli_code, cli) = run("moon", ["run", "tools/cli_smoke.mbtx"])
+  if model_code != 0 || cli_code != 0 { failed = true }
+  let dir = "evidence/2026-11-10"
+  @fs.mkdir(dir, recursive=true, allow_exist=true)
+  for (path, data) in logs { @fs.write_file(dir + "/" + path, data) }
+  @fs.write_file(dir + "/model.json", model)
+  @fs.write_file(dir + "/cli.log", cli)
+  let report : Json = {"source_revision": @json.to_json(revision), "source_dirty_at_start": @json.to_json(dirty), "full_suite": false, "orchestration_platform": @json.to_json(platform), "project_target": "native", "groups": @json.to_json(rows), "model_exit": @json.to_json(model_code), "cli_exit": @json.to_json(cli_code), "toolchain": @json.to_json(versions)}
+  @fs.write_file(dir + "/results.json", report.stringify(indent=2))
+  summary.write_string("\n[Machine-readable results](results.json) · [100K queue model](model.json) · [CLI log](cli.log)\n\nModel inputs: 99,999 `https://a.example/{i}` tasks and one `https://b.example/` task. No public network access; this measures candidate checks and wall duration, not CPU time or peak memory. The 65 MiB persistence test measures an aggregate round-trip, not constant-memory operation.\n")
+  @fs.write_file(dir + "/README.md", summary.to_string())
+  if failed { fail("Evidence includes failures; inspect logs") }
+  println("Published local evidence files for " + revision)
+}

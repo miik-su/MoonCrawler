@@ -57,6 +57,7 @@ pub struct FileStore {
   priv mut sequence : Int32
   priv mut job_id : String
   priv mut job_config : @core.Config?
+  priv mut ledger : @core.PageLedger
 }
 
 ///|
@@ -79,7 +80,14 @@ pub async fn FileStore::open(directory : String) -> FileStore {
   if !lock_file.try_lock(Exclusive) {
     raise @core.Storage("job directory already locked")
   }
-  { directory, lock_file, sequence: 0, job_id: "", job_config: None, }
+  {
+    directory,
+    lock_file,
+    sequence: 0,
+    job_id: "",
+    job_config: None,
+    ledger: @core.PageLedger::new(),
+  }
 }
 
 ///|
@@ -99,6 +107,10 @@ pub impl Storage for FileStore with fn load(self) {
   self.sequence = sequence
   self.job_id = if job_id.is_empty() { nonce() } else { job_id }
   self.job_config = snapshot.map(s => s.config)
+  self.ledger = @core.PageLedger::new()
+  if snapshot is Some(s) {
+    self.ledger.commit(s.config, s.pages)
+  }
   if snapshot is Some(saved) && !@fs.exists(self.directory + "/index.json") {
     self.write_checkpoint(saved)
   }
@@ -135,6 +147,8 @@ pub fn validate(snapshot : Snapshot) -> Unit raise @core.CrawlError {
     raise @core.Storage("too many checkpoint pages")
   }
   let seen : Map[String, Bool] = Map([])
+  let ledger = @core.PageLedger::new()
+  ledger.commit(snapshot.config, snapshot.pages)
   for page in snapshot.pages {
     let url = @url.parse(page.url) catch {
       _ => raise @core.Storage("invalid page URL")

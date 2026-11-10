@@ -22,6 +22,7 @@ pub fn Scheduler::defer_host(Self, String, Int64) -> Unit
 pub fn Scheduler::eligible(Self, String, Int64) -> Bool
 pub fn Scheduler::new(@core.Config) -> Self raise @core.CrawlError
 pub fn Scheduler::pause(Self) -> Unit
+pub fn Scheduler::prune(Self, Int64) -> Unit
 pub fn Scheduler::release(Self, String) -> Unit
 pub fn Scheduler::unpause(Self) -> Unit
 

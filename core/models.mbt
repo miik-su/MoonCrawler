@@ -5,6 +5,7 @@ pub(all) suberror CrawlError {
   Capacity(String)
   Protocol(String)
   Network(String)
+  DnsUnknown
   Storage(String)
   StaleLease
   Policy(String)
@@ -91,6 +92,8 @@ pub(all) struct Config {
   max_robots_redirects : Int32
   max_robots_bytes : Int32
   robots_cache_capacity : Int32
+  max_total_page_bytes : Int32
+  max_total_metadata_bytes : Int32
 } derive(Debug, Eq, ToJson, FromJson)
 
 ///|
@@ -119,11 +122,19 @@ pub fn Config::default() -> Config {
     max_robots_redirects: 5,
     max_robots_bytes: 1048576,
     robots_cache_capacity: 256,
+    max_total_page_bytes: 134217728,
+    max_total_metadata_bytes: 16777216,
   }
 }
 
 ///|
 pub fn Config::validate(self : Config) -> Unit raise CrawlError {
+  if self.max_total_page_bytes < 1 ||
+    self.max_total_page_bytes > 1073741824 ||
+    self.max_total_metadata_bytes < 1 ||
+    self.max_total_metadata_bytes > self.max_total_page_bytes {
+    raise Invalid("invalid aggregate page budgets")
+  }
   if self.schema_version != 2 {
     raise Invalid("unsupported config version")
   }

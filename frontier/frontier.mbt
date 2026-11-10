@@ -3,7 +3,11 @@
 pub struct Frontier {
   config : @core.Config
   tasks : Map[String, @core.Task]
-  priv ready : @priority_queue.PriorityQueue[(Int32, Int32, String, Int32)]
+  priv ready : Map[
+    String,
+    @priority_queue.PriorityQueue[(Int32, Int32, String, Int32)],
+  ]
+  priv mut candidate_checks : Int32
   priv delayed : @priority_queue.PriorityQueue[(Int64, String, Int32)]
   priv mut sequence : Int32
   priv mut unfinished : Int32
@@ -16,7 +20,8 @@ pub fn Frontier::new(config : @core.Config) -> Frontier raise @core.CrawlError {
   {
     config,
     tasks: {},
-    ready: @priority_queue.PriorityQueue([]),
+    ready: {},
+    candidate_checks: 0,
     delayed: @priority_queue.PriorityQueue([]),
     sequence: 0,
     unfinished: 0,
@@ -66,26 +71,37 @@ pub fn Frontier::claim(
       task.generation == generation &&
       (task.state == Pending || task.state == RetryPending) {
       self.sequence += 1
-      self.ready.push((task.request.priority, -self.sequence, key, generation))
+      self.ready
+      .get_or_init(task.request.url.host, () => {
+        @priority_queue.PriorityQueue([])
+      })
+      .push((task.request.priority, -self.sequence, key, generation))
     }
   }
-  let blocked : Array[(Int32, Int32, String, Int32)] = []
-  let best = for ;; {
-    guard self.ready.pop() is Some(entry) else { break None }
-    let (_, _, key, generation) = entry
-    guard self.tasks.get(key) is Some(task) &&
-      task.generation == generation &&
-      (task.state == Pending || task.state == RetryPending) else {
-      continue
+  let mut winner : (Int32, Int32, String, Int32)? = None
+  for _, queue in self.ready {
+    while queue.peek() is Some((_, _, key, generation)) {
+      let task = self.tasks[key]
+      if task.generation == generation &&
+        (task.state == Pending || task.state == RetryPending) {
+        break
+      }
+      queue.pop() |> ignore
     }
-    if eligible(task.request) {
-      break Some((key, task))
+    if queue.peek() is Some(entry) {
+      self.candidate_checks += 1
+      if eligible(self.tasks[entry.2].request) {
+        if winner is None || entry > winner.unwrap() {
+          winner = Some(entry)
+        }
+      }
     }
-    blocked.push(entry)
   }
-  for entry in blocked {
-    self.ready.push(entry)
-  }
+  let best = winner.map(entry => {
+    let task = self.tasks[entry.2]
+    self.ready[task.request.url.host].pop() |> ignore
+    (entry.2, task)
+  })
   match best {
     None => None
     Some((key, task)) => {

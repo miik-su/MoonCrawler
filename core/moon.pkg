@@ -2,6 +2,7 @@ import {
   "miik-su/mooncrawler/url",
   "moonbitlang/core/debug",
   "moonbitlang/core/json",
+  "moonbitlang/core/encoding/utf8",
 }
 
 import {

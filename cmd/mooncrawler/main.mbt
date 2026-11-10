@@ -33,7 +33,17 @@ async fn crawl(
   defer store.close()
   let adapter : &@storage.Storage = store
   let saved = adapter.load()
-  let config = config.unwrap_or_else(() => saved.unwrap().config)
+  if resume_job && saved is None {
+    raise @core.Storage("no checkpoint found in job directory")
+  }
+  let config = match config {
+    Some(c) => c
+    None =>
+      match saved {
+        Some(s) => s.config
+        None => raise @core.Storage("no checkpoint found in job directory")
+      }
+  }
   if !resume_job && saved is Some(_) {
     raise @core.Invalid("job already exists; use resume or another directory")
   }

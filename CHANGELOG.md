@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.1
+
+- Validate page identity and aggregate budgets before journal writes; enforce adapter contracts.
+- Group Frontier heaps by host and publish a reproducible 100K blocked-host model.
+- Bound Robots rule/matching/cache resources and explicitly maintain FIFO order.
+- Pack page checkpoint shards by byte budget and support obsolete HTTP date formats.
+- Add typed resolver errors, safe missing-job CLI behavior and HTML structural preflight.
+- Publish machine-readable test results/raw logs and pin CI Actions/bootstrap digests.
+
 ## 0.2.0
 
 - Default-deny crawl scope, explicit UnsafeFetcher trust boundary and actual peer checks.

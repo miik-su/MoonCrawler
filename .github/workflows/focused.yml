@@ -7,11 +7,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
-      - name: Install pinned MoonBit
-        run: curl -fsSL https://cli.moonbitlang.com/install/unix.sh -o /tmp/install-moonbit.sh
-      - run: bash /tmp/install-moonbit.sh '0.10.17+d971670cd'
-      - run: echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: ./.github/actions/setup
       - run: sudo apt-get update
       - run: sudo apt-get install -y libssl-dev curl
       - run: moon update
@@ -25,3 +22,11 @@ jobs:
         run: moon test engine/policy_test.mbt engine/fairness_test.mbt engine/robots_limits_test.mbt engine/failure_test.mbt fetcher/headers_test.mbt fetcher/attack_test.mbt storage/journal_test.mbt storage/file_safety_test.mbt --target native
       - name: Real CLI smoke
         run: moon run tools/cli_smoke.mbtx
+      - name: Capture reproducible test evidence
+        if: always()
+        run: moon run tools/publish_evidence.mbtx
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: focused-evidence
+          path: evidence/2026-11-10/

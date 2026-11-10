@@ -8,10 +8,18 @@ priv struct Group {
 pub struct Rules {
   priv groups : Array[Group]
   sitemaps : Array[String]
+  priv limited : Bool
+  priv bytes : Int32
 }
 
 ///|
 pub fn parse(text : String) -> Rules {
+  let denied : Rules = { groups: [], sitemaps: [], limited: true, bytes: 64, }
+  if text.length() > 1048576 {
+    return denied
+  }
+  let mut rule_count = 0
+  let mut agent_count = 0
   let groups : Array[Group] = []
   let sitemaps : Array[String] = []
   let mut group : Group = { agents: [], rules: [], }
@@ -23,6 +31,21 @@ pub fn parse(text : String) -> Rules {
     }
     let name = pair[0].trim().to_owned().to_lower()
     let value = pair[1:].map(x => x.to_owned()).join(":").trim().to_owned()
+    if value.length() > 2048 {
+      return denied
+    }
+    if name == "user-agent" {
+      agent_count += 1
+    }
+    if name == "allow" || name == "disallow" {
+      rule_count += 1
+    }
+    if rule_count > 4096 ||
+      agent_count > 1024 ||
+      groups.length() >= 256 ||
+      sitemaps.length() >= 128 {
+      return denied
+    }
     match name {
       "user-agent" => {
         if !group.rules.is_empty() {
@@ -42,7 +65,12 @@ pub fn parse(text : String) -> Rules {
   if !group.agents.is_empty() {
     groups.push(group)
   }
-  { groups, sitemaps, }
+  {
+    groups,
+    sitemaps,
+    limited: false,
+    bytes: @utf8.encode(text).length() * 2 + 64,
+  }
 }
 
 ///|
@@ -133,6 +161,10 @@ fn octets(value : String) -> String {
 
 ///|
 pub fn Rules::allows(self : Rules, agent : String, path : String) -> Bool {
+  if self.limited || path.length() > 8192 {
+    return false
+  }
+  let mut budget = 2000000
   let token = agent.to_lower().split("/").to_array()[0].to_owned()
   let mut specificity = -1
   for group in self.groups {
@@ -152,6 +184,11 @@ pub fn Rules::allows(self : Rules, agent : String, path : String) -> Bool {
     }
     for (pattern, allow) in group.rules {
       let pattern = octets(pattern)
+      let cost = (pattern.length() + 1) * (path.length() + 1)
+      if cost > budget {
+        return false
+      }
+      budget -= cost
       if matches(pattern, path) {
         let literal = pattern.replace_all(old="*", new="")
         let literal = if literal.has_suffix("$") {
@@ -179,11 +216,12 @@ pub fn Rules::sitemaps(self : Rules) -> Array[String] {
 pub struct Cache {
   entries : Map[String, (Rules, Int64)]
   capacity : Int32
+  priv order : Array[String]
 }
 
 ///|
 pub fn Cache::new(capacity~ : Int32 = 256) -> Cache {
-  { entries: {}, capacity: capacity.max(1), }
+  { entries: {}, capacity: capacity.max(1), order: [], }
 }
 
 ///|
@@ -211,9 +249,12 @@ pub fn Cache::update(
   for key in expired {
     self.entries.remove(key) |> ignore
   }
-  if !self.entries.contains(origin) && self.entries.length() >= self.capacity {
-    if self.entries.keys().next() is Some(key) {
+  self.entries.remove(origin) |> ignore
+  self.order.retain(key => self.entries.contains(key))
+  if self.entries.length() >= self.capacity {
+    if self.order.get(0) is Some(key) {
       self.entries.remove(key) |> ignore
+      self.order.remove(0) |> ignore
     }
   }
   let (rules, ttl) = if status >= 200 && status < 300 {
@@ -223,6 +264,15 @@ pub fn Cache::update(
   } else {
     (parse("User-agent: *\nDisallow: /"), 300000L)
   }
+  self.order.retain(key => self.entries.contains(key) && key != origin)
+  while self.entries.values().fold(init=0, (sum, entry) => sum + entry.0.bytes) +
+        rules.bytes >
+        8388608 {
+    guard self.order.get(0) is Some(key) else { break }
+    self.entries.remove(key) |> ignore
+    self.order.remove(0) |> ignore
+  }
   self.entries[origin] = (rules, now + ttl)
+  self.order.push(origin)
   rules
 }

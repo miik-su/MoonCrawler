@@ -1,0 +1,19 @@
+name: Verified MoonBit bootstrap
+description: Verify reviewed installer contents before execution and select the pinned toolchain.
+runs:
+  using: composite
+  steps:
+    - shell: pwsh
+      env:
+        MOONBIT_INSTALL_VERSION: '0.10.17+d971670cd'
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $isWin = '${{ runner.os }}' -eq 'Windows'
+        $installerName = if ($isWin) { 'powershell.ps1' } else { 'unix.sh' }
+        $expected = if ($isWin) { 'A5101E91FFA9905FB25CD009B9A4AA942971A294BD055C89836E3AF89B710C64' } else { '46495F8CDC0050F79B6CB195D66478D101CB3601D68506568FBE377FCDF2A9FE' }
+        $installerPath = Join-Path $env:RUNNER_TEMP $installerName
+        Invoke-WebRequest -Uri "https://cli.moonbitlang.com/install/$installerName" -OutFile $installerPath
+        if ((Get-FileHash -Algorithm SHA256 -LiteralPath $installerPath).Hash -ne $expected) { throw 'Installer digest changed; review before updating the pin' }
+        if ($isWin) { & $installerPath } else { & bash $installerPath $env:MOONBIT_INSTALL_VERSION }
+        if ($LASTEXITCODE -ne 0) { throw 'MoonBit installation failed' }
+        Add-Content -LiteralPath $env:GITHUB_PATH -Value (Join-Path ([Environment]::GetFolderPath('UserProfile')) '.moon/bin')

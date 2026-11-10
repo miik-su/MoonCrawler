@@ -1,0 +1,9 @@
+import {
+  "miik-su/mooncrawler/core",
+  "miik-su/mooncrawler/frontier",
+  "miik-su/mooncrawler/url",
+  "moonbitlang/core/json",
+  "moonbitlang/core/env",
+}
+
+pkgtype(kind: "executable")

@@ -10,6 +10,7 @@ pub fn parse(String) -> Rules
 pub struct Cache {
   entries : Map[String, (Rules, Int64)]
   capacity : Int32
+  // private fields
 }
 pub fn Cache::get(Self, String, Int64) -> Rules?
 pub fn Cache::new(capacity? : Int32) -> Self

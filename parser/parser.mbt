@@ -46,6 +46,9 @@ pub fn extract(response : @core.Response) -> @core.Page raise @core.CrawlError {
   if response.body.length() > 524288 {
     raise @core.Capacity("HTML parser input exceeds 512K code units")
   }
+  if response.body.iter().filter(c => c == '<').count() > 4096 {
+    raise @core.Capacity("HTML structural preflight budget exceeded")
+  }
   let doc = @html.parse(response.body)
   if doc.nodes.length() > 100000 {
     raise @core.Capacity("HTML node budget exceeded")

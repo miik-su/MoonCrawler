@@ -114,6 +114,7 @@ pub fn apply_batch(
     task_map[t.request.url.key(include_query=previous.config.include_query)] = t
   }
   for p in pages {
+    @core.validate_page(previous.config, p) |> ignore
     page_map[p.url] = p
   }
   {
@@ -153,22 +154,22 @@ async fn FileStore::write_checkpoint(
     )
     shards.push(name)
   }
-  for i, page in snapshot.pages {
-    let name = "\{prefix}-p-\{i}.json"
-    atomic_file(
-      self.directory,
-      name,
-      wrap(
-        @json.to_json(Delta::{
-          job_id: self.job_id,
-          sequence: self.sequence,
-          tasks: [],
-          pages: [page],
-          saved_at: snapshot.saved_at,
-        }),
-      ),
-    )
-    shards.push(name)
+  let batch : Array[@core.Page] = []
+  let mut used = 0
+  let mut part = 0
+  for page in snapshot.pages {
+    let size = @utf8.encode(@json.to_json(page).stringify()).length() * 2 + 256
+    if !batch.is_empty() && (used + size > 8388608 || batch.length() >= 128) {
+      shards.push(self.page_shard(prefix, part, batch, snapshot.saved_at))
+      part += 1
+      batch.clear()
+      used = 0
+    }
+    batch.push(page)
+    used += size
+  }
+  if !batch.is_empty() {
+    shards.push(self.page_shard(prefix, part, batch, snapshot.saved_at))
   }
   let index = Index::{
     job_id: self.job_id,
@@ -185,6 +186,8 @@ async fn FileStore::write_checkpoint(
     replace=true,
   )
   self.job_config = Some(snapshot.config)
+  self.ledger = @core.PageLedger::new()
+  self.ledger.commit(snapshot.config, snapshot.pages)
   for name in @fs.readdir(self.directory) {
     let old_shard = name.has_prefix("shard-") &&
       name.has_suffix(".json") &&
@@ -223,6 +226,7 @@ pub impl Storage for FileStore with fn commit_batch(
     @core.validate_task(config, task)
   }
   let sequence = self.sequence + 1
+  self.ledger.check(config, pages) |> ignore
   let record = wrap(
     @json.to_json(Delta::{
       job_id: self.job_id,
@@ -237,6 +241,7 @@ pub impl Storage for FileStore with fn commit_batch(
   }
   atomic_file(self.directory, "event-\{sequence}.json", record)
   self.sequence = sequence
+  self.ledger.commit(config, pages)
 }
 
 ///|
@@ -251,7 +256,13 @@ async fn recover(directory : String) -> (Snapshot?, Int32, String) {
     validate(legacy)
     return (Some(legacy), 0, "")
   }
-  let index : Index = @json.from_json(unwrapped(directory + "/index.json"))
+  let index_json = unwrapped(directory + "/index.json")
+  if index_json is Object(fields) {
+    if fields.get("config") is Some(config) {
+      fields["config"] = @core.upgrade_config(config)
+    }
+  }
+  let index : Index = @json.from_json(index_json)
   if index.format != 2 || index.sequence < 0 {
     raise @core.Storage("unsupported job index")
   }
@@ -264,6 +275,7 @@ async fn recover(directory : String) -> (Snapshot?, Int32, String) {
   }
   let tasks : Map[String, @core.Task] = Map([])
   let pages : Map[String, @core.Page] = Map([])
+  let ledger = @core.PageLedger::new()
   for name in index.shards {
     if !name.has_prefix("shard-") || name.contains_any(chars="/\\:") {
       raise @core.Storage("invalid shard path")
@@ -278,6 +290,7 @@ async fn recover(directory : String) -> (Snapshot?, Int32, String) {
     for page in shard.pages {
       pages[page.url] = page
     }
+    ledger.commit(index.config, shard.pages)
   }
   let mut sequence = index.sequence
   let events : Array[Int32] = []
@@ -308,6 +321,7 @@ async fn recover(directory : String) -> (Snapshot?, Int32, String) {
     for page in delta.pages {
       pages[page.url] = page
     }
+    ledger.commit(index.config, delta.pages)
     snapshot = { ..snapshot, saved_at: delta.saved_at, }
     sequence = seq
   }

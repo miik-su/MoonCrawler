@@ -43,6 +43,9 @@ pub fn Scheduler::release(self : Scheduler, host : String) -> Unit {
   let n = self.active.get(host).unwrap_or(0)
   if n > 0 {
     self.active[host] = n - 1
+    if n == 1 {
+      self.active.remove(host) |> ignore
+    }
     self.running -= 1
   }
 }
@@ -64,4 +67,16 @@ pub fn Scheduler::pause(self : Scheduler) -> Unit {
 ///|
 pub fn Scheduler::unpause(self : Scheduler) -> Unit {
   self.paused = false
+}
+
+///|
+pub fn Scheduler::prune(self : Scheduler, now : Int64) -> Unit {
+  let expired = self.next
+    .iter()
+    .filter(entry => entry.1 <= now && !self.active.contains(entry.0))
+    .map(entry => entry.0)
+    .to_array()
+  for host in expired {
+    self.next.remove(host) |> ignore
+  }
 }

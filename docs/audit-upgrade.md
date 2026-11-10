@@ -1,7 +1,7 @@
 # 0.2 audit remediation
 
-Source: the user's full MoonCrawler security review and four-round modification
-plan. This record separates code changes and observed tests from release certification.
+This record tracks the 0.2 security review and four-round remediation plan.
+It separates code changes and observed tests from release certification.
 
 ## P0 changes
 
@@ -91,5 +91,5 @@ as a local Windows TLS result.
 Still separate from this code delivery: coverage-guided fuzz campaigns, 100K measured
 benchmarks, controlled DNS rebinding infrastructure, forced-power-loss experiments,
 verified Windows/Linux/macOS results, full-suite certification, decoder/metrics
-exporter adapters, and a 1.0 release. Per the user's instruction, no full test run was
+exporter adapters, and a 1.0 release. No full test run was
 performed. Manual release CI is provided but not automatically invoked.

@@ -18,6 +18,7 @@ pub struct Frontier {
   // private fields
 }
 pub fn Frontier::cancel(Self, @url.Url) -> Bool
+pub fn Frontier::candidate_checks(Self) -> Int32
 pub fn Frontier::claim(Self, Int64, eligible? : (@core.Request) -> Bool) -> @core.Task?
 pub fn Frontier::complete(Self, @core.Task) -> Unit raise @core.CrawlError
 pub fn Frontier::count(Self, @core.State) -> Int32

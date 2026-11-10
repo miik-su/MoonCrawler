@@ -16,6 +16,8 @@ pub struct Engine {
   priv changed_pages : Map[String, @core.Page]
   priv mut checkpoint_count : Int32
   priv mut initialized : Bool
+  priv mut page_bytes : Int32
+  priv mut metadata_bytes : Int32
   priv mut stopped : Bool
 }
 
@@ -40,9 +42,14 @@ pub fn Engine::new(
     }
   }
   let pages : Map[String, @core.Page] = Map([])
+  let mut page_bytes = 0
+  let mut metadata_bytes = 0
   if snapshot is Some(s) {
     for page in s.pages {
       pages[page.url] = page
+      let (size, meta) = @core.validate_page(config, page)
+      page_bytes += size
+      metadata_bytes += meta
     }
   }
   {
@@ -62,6 +69,8 @@ pub fn Engine::new(
     changed_pages: {},
     checkpoint_count: 0,
     initialized: snapshot is Some(_),
+    page_bytes,
+    metadata_bytes,
     stopped: false,
   }
 }
@@ -105,6 +114,7 @@ async fn Engine::checkpoint(self : Engine) -> Unit {
   self.store.commit_batch(self.config, tasks, pages, @clock.epoch_ms())
   self.checkpoint_count += 1
   if self.checkpoint_count % 100 == 0 {
+    self.scheduler.prune(@async.now())
     self.store.save(self.snapshot())
   }
 }
@@ -133,7 +143,11 @@ async fn Engine::send(
     } else {
       self.config
     }
-    self.fetcher.fetch(url, config)
+    let response = self.fetcher.fetch(url, config)
+    if response.url != url {
+      raise @core.Protocol("adapter violated single-hop response URL contract")
+    }
+    response
   })
 }
 
@@ -281,12 +295,30 @@ async fn Engine::execute(self : Engine, lease : @core.Task) -> Unit {
   // Link discovery and page insertion occur before completing the task and snapshotting.
   // Filtered pages also suppress discovery, making pipeline rejection predictable.
   if processed is Some(page) {
+    if page.url != response.url.key() {
+      raise @core.Protocol("processor changed page identity")
+    }
+    let (size, meta) = @core.validate_page(self.config, page)
+    let (old_size, old_meta) = match self.pages.get(page.url) {
+      Some(old) => @core.validate_page(self.config, old)
+      None => (0, 0)
+    }
+    if self.page_bytes - old_size + size > self.config.max_total_page_bytes ||
+      self.metadata_bytes - old_meta + meta >
+      self.config.max_total_metadata_bytes {
+      raise @core.Capacity("aggregate page budget reached")
+    }
+    self.page_bytes = self.page_bytes - old_size + size
+    self.metadata_bytes = self.metadata_bytes - old_meta + meta
     self.pages[page.url] = page
     self.changed_pages[page.url] = page
     let nofollow = page.metadata.get("robots").unwrap_or("").to_lower()
     if !nofollow.contains("nofollow") && !nofollow.contains("none") {
       for link in page.links {
         let url = @url.parse(link) catch { _ => continue }
+        @security.check_url(url, self.config) catch {
+          _ => continue
+        }
         let request : @core.Request = {
           url,
           depth: lease.request.depth + 1,
@@ -321,6 +353,21 @@ async fn Engine::worker(self : Engine, should_stop : async () -> Bool) -> Unit {
         }
         self.checkpoint()
         self.execute(lease) catch {
+          @core.DnsUnknown =>
+            if lease.attempts == 1 {
+              self.frontier.fail(
+                lease,
+                @clock.epoch_ms(),
+                "unclassified DNS failure",
+                retry_delay=1000,
+              )
+            } else {
+              self.frontier.fail(
+                lease,
+                @clock.epoch_ms(),
+                "unclassified DNS failure",
+              )
+            }
           @core.Paused => {
             self.frontier.requeue(lease, @clock.epoch_ms())
             self.stopped = true

@@ -46,8 +46,14 @@ pub fn delay(
 
 ///|
 fn http_date_delay(value : String, now_ms : Int64) -> Int32? {
+  let value = normalize_date(value, now_ms).unwrap_or("")
   let fields = value.split(" ").to_array()
   if fields.length() != 6 || fields[5] != "GMT" {
+    return None
+  }
+  if !["Sun,", "Mon,", "Tue,", "Wed,", "Thu,", "Fri,", "Sat,"].contains(
+      fields[0].to_owned(),
+    ) {
     return None
   }
   let months = [

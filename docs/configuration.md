@@ -19,6 +19,8 @@ when resuming. No credentials are saved by the bundled adapter.
 | max_robots_redirects | 5 | independent Robots redirect chain, 5..20 |
 | max_robots_bytes | 1048576 | independent Robots body budget, 512000..16777216 |
 | robots_cache_capacity | 256 | bounded Origin cache, 1..10000; expired entries removed first |
+| max_total_page_bytes | 134217728 | aggregate serialized UTF-8 pages, up to 1 GiB |
+| max_total_metadata_bytes | 16777216 | aggregate serialized metadata, no larger than the page budget |
 | max_attempts | 3 | total attempts including first, 1..10 |
 | lease_ms | 120000 | Frontier library deadline; Engine uses restart recovery, not runtime lease stealing |
 | user_agent | MoonCrawler/0.1 | crawler product token/version, no CR/LF |

@@ -12,6 +12,8 @@ pub fn decode_config(Json) -> Config raise
 
 pub fn upgrade_config(Json) -> Json
 
+pub fn validate_page(Config, Page) -> (Int32, Int32) raise CrawlError
+
 pub fn validate_task(Config, Task) -> Unit raise CrawlError
 
 // Errors
@@ -21,6 +23,7 @@ pub(all) suberror CrawlError {
   Capacity(String)
   Protocol(String)
   Network(String)
+  DnsUnknown
   Storage(String)
   StaleLease
   Policy(String)
@@ -54,6 +57,8 @@ pub(all) struct Config {
   max_robots_redirects : Int32
   max_robots_bytes : Int32
   robots_cache_capacity : Int32
+  max_total_page_bytes : Int32
+  max_total_metadata_bytes : Int32
 } derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 pub fn Config::accepts(Self, Request) -> Bool
 pub fn Config::default() -> Self
@@ -78,6 +83,13 @@ pub(all) struct Page {
 pub fn Page::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 pub fn Page::to_json(Self) -> Json
 pub fn Page::to_repr(Self) -> @debug.Repr
+
+pub struct PageLedger {
+  // private fields
+}
+pub fn PageLedger::check(Self, Config, Array[Page]) -> (Int32, Int32) raise CrawlError
+pub fn PageLedger::commit(Self, Config, Array[Page]) -> Unit raise CrawlError
+pub fn PageLedger::new() -> Self
 
 pub(all) struct Request {
   url : @url.Url

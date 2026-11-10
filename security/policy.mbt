@@ -81,9 +81,17 @@ pub fn check_url(
 
 ///|
 /// Resolve once, validate, and return the exact address the transport MUST pin.
-pub async fn resolve_checked(url : @url.Url, config : @core.Config) -> String {
+pub async fn resolve_checked(
+  url : @url.Url,
+  config : @core.Config,
+  resolver~ : &Resolver = SystemResolver::{ },
+) -> String {
   check_url(url, config)
-  let addr = @socket.Addr::resolve(url.host, port=url.port, protocol=OnlyV4)
+  let addr = resolver.resolve(url.host, url.port) catch {
+    Temporary => raise @core.Network("temporary DNS failure")
+    NotFound => raise @core.Protocol("DNS name does not exist")
+    Unknown => raise @core.DnsUnknown
+  }
   let ip = addr.to_string().split(":").to_array()[0].to_owned()
   if !public_ipv4(ip, allow_loopback=config.allow_loopback) {
     raise @core.Security("resolved destination is not public IPv4")
