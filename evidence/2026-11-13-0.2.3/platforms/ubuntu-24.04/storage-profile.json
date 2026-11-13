@@ -1,0 +1,26 @@
+[
+  {
+    "probe": {
+      "mode": "full",
+      "pages": 65,
+      "text_payload_bytes": 68157440,
+      "max_batch_pages": 65,
+      "wall_elapsed_ms": "22522"
+    },
+    "memory_bytes": "173973504",
+    "memory_method": "Linux VmHWM",
+    "includes_runtime_and_buffers": true
+  },
+  {
+    "probe": {
+      "mode": "catalog",
+      "pages": 65,
+      "text_payload_bytes": 68157440,
+      "max_batch_pages": 3,
+      "wall_elapsed_ms": "20318"
+    },
+    "memory_bytes": "38948864",
+    "memory_method": "Linux VmHWM",
+    "includes_runtime_and_buffers": true
+  }
+]

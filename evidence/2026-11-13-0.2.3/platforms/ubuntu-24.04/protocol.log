@@ -1,0 +1,8 @@
+Total tests: 4, passed: 4, failed: 0.
+Warning: [0014]
+    ╭─[ /home/runner/work/MoonCrawler/MoonCrawler/fetcher/attack_test.mbt:77:21 ]
+    │
+ 77 │           let tls = @tls.Tls::server(
+    │                     ────────┬───────  
+    │                             ╰───────── Warning (alert_internal): do not use, for internal testing only
+────╯

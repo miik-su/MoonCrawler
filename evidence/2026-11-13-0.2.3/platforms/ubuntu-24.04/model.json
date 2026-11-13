@@ -1,0 +1,26 @@
+[
+  {
+    "model": "host-blocked-100k",
+    "tasks": 100000,
+    "blocked_host_tasks": 99999,
+    "eligible_host_tasks": 1,
+    "selected_host": "b.example",
+    "initial_candidate_checks": 2,
+    "subsequent_polls": 100,
+    "subsequent_candidate_checks": 100,
+    "wall_elapsed_ms": "779",
+    "network_requests": 0,
+    "cpu_time_measured": false
+  },
+  {
+    "model": "10k-distinct-hosts",
+    "hosts": 10000,
+    "selected_host": "h0.example",
+    "initial_candidate_checks": 10000,
+    "blocked_polls": 10,
+    "blocked_candidate_checks": 99990,
+    "wall_elapsed_ms": "98",
+    "complexity": "linear in nonempty hosts per claim",
+    "network_requests": 0
+  }
+]

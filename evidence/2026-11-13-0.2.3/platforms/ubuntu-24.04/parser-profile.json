@@ -1,0 +1,58 @@
+[
+  {
+    "probe": {
+      "fixture": "nested",
+      "input_units": 22004,
+      "elapsed_ms": "112",
+      "result": {
+        "outcome": "parsed",
+        "text_units": 4
+      }
+    },
+    "memory_bytes": "4702208",
+    "memory_method": "Linux VmHWM",
+    "includes_runtime_and_input": true
+  },
+  {
+    "probe": {
+      "fixture": "malformed",
+      "input_units": 9000,
+      "elapsed_ms": "9",
+      "result": {
+        "outcome": "parsed",
+        "text_units": 1199
+      }
+    },
+    "memory_bytes": "3842048",
+    "memory_method": "Linux VmHWM",
+    "includes_runtime_and_input": true
+  },
+  {
+    "probe": {
+      "fixture": "long_attribute",
+      "input_units": 500024,
+      "elapsed_ms": "44",
+      "result": {
+        "outcome": "parsed",
+        "text_units": 4
+      }
+    },
+    "memory_bytes": "12554240",
+    "memory_method": "Linux VmHWM",
+    "includes_runtime_and_input": true
+  },
+  {
+    "probe": {
+      "fixture": "entities",
+      "input_units": 300007,
+      "elapsed_ms": "184",
+      "result": {
+        "outcome": "parsed",
+        "text_units": 60000
+      }
+    },
+    "memory_bytes": "9015296",
+    "memory_method": "Linux VmHWM",
+    "includes_runtime_and_input": true
+  }
+]
