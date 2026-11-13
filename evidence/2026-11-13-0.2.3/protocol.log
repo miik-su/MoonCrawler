@@ -1,0 +1,5 @@
+Total tests: 4, passed: 4, failed: 0.
+  正在创建库 <user>\Documents\ChatGPT\moonbit\MoonCrawler\_build\native\debug\test\security\security.internal_test.lib 和对象 <user>\Documents\ChatGPT\moonbit\MoonCrawler\_build\native\debug\test\security\security.internal_test.exp
+  正在创建库 <user>\Documents\ChatGPT\moonbit\MoonCrawler\_build\native\debug\test\fetcher\fetcher.internal_test.lib 和对象 <user>\Documents\ChatGPT\moonbit\MoonCrawler\_build\native\debug\test\fetcher\fetcher.internal_test.exp
+  正在创建库 <user>\Documents\ChatGPT\moonbit\MoonCrawler\_build\native\debug\test\security\security.blackbox_test.lib 和对象 <user>\Documents\ChatGPT\moonbit\MoonCrawler\_build\native\debug\test\security\security.blackbox_test.exp
+  正在创建库 <user>\Documents\ChatGPT\moonbit\MoonCrawler\_build\native\debug\test\fetcher\fetcher.blackbox_test.lib 和对象 <user>\Documents\ChatGPT\moonbit\MoonCrawler\_build\native\debug\test\fetcher\fetcher.blackbox_test.exp
