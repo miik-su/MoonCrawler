@@ -1,4 +1,7 @@
 ///|
+/// Validate persisted data identity, crawl scope and payload budgets. This does
+/// not authorize network access: connection callers must use security.check_url
+/// and resolve_checked, including DNS/IP validation immediately before connection.
 pub fn validate_page(
   config : Config,
   page : Page,

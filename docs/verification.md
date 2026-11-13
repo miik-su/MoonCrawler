@@ -1,4 +1,17 @@
-# Focused verification (2026-11-08)
+# Focused verification
+
+## Latest: 0.2.2 (2026-11-13)
+
+See [recorded results and raw logs](../evidence/2026-11-13/README.md) and
+[remediation boundaries](review-0.2.2.md). New selected fixtures cover Robots
+temporary failures/restart, ASCII rel tokens, unsolicited cached 304 rejection,
+streaming JSONL, injected DNS answers with actual loopback curl, 10K hosts,
+forced process termination and fresh-process parser working-set profiles.
+Reproduce using `moon run tools/publish_evidence.mbtx 2026-11-13`.
+Full suite and three-platform workflow remain manual and were not invoked for
+this run, following the requested focused-test scope.
+
+## Historical: 2026-11-08
 
 MoonBit `0.10.17+d971670cd`, moon `0.1.20261023`, Windows native, curl `8.21.0`.
 Only selected tests ran; no unfiltered `moon test` or full dependency suite.

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.2
+
+- Retry temporary Robots outages with persisted bounded cooldowns, separately from rule denies.
+- Match HTML rel tokens using ASCII whitespace and reject unsolicited 304 even with saved pages.
+- Stream JSONL records to exclusive output files; retain current in-memory recovery scope.
+- Validate complete injected resolver answer sets and exercise actual curl IP pinning locally.
+- Record 10K-host scan counts, four parser working-set profiles and five forced-kill recovery stages.
+- Publish dated evidence and cross-platform artifacts; update version and dependency inventory.
+
 ## 0.2.1
 
 - Validate page identity and aggregate budgets before journal writes; enforce adapter contracts.

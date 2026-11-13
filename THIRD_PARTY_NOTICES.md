@@ -11,7 +11,9 @@ No third-party source was copied into the implementation.
 | moonbitlang/x | 0.5.7 | HTTP Retry-After date validation | Apache-2.0 |
 | curl executable | external, tested 8.21.0 | HTTP/TLS and decompression | curl license |
 
-Dependency license files remain in `.mooncakes/` after installation. curl is not redistributed.
+Observed versions, installed license hashes and packaging gaps are recorded in
+[the dependency inventory](docs/dependency-licenses.md). In particular, x 0.5.7 has
+Apache notices/metadata but no root LICENSE in this installed package. curl is not redistributed.
 The external curl license is published at https://curl.se/docs/copyright.html .
 
 Architectural references (concepts only):
@@ -22,3 +24,5 @@ Architectural references (concepts only):
 - [MoonBit HTML5 parser](https://github.com/moonbit-community/html5-mbt): reused through an extraction adapter.
 
 See [compatibility](docs/compatibility.md) for verified scope.
+
+No AI model weights are included. Queue models refer to synthetic test workloads.

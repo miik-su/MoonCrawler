@@ -25,7 +25,9 @@ as a stable cross-version contract. Runtime timeouts remain owned by async.
 - Named IPv4 CIDR exclusion table and IPv6/alternate-literal boundary tests.
 - Header token/control validation, sensitive duplicates and conflicting framing
   rejection, explicit 101 rejection; non-sensitive list values joined, cookies discarded.
-- 304 requires an existing representation. 204 remains an empty success.
+- Historical 0.2 behavior required an existing representation for 304. Since 0.2.2,
+  Engine rejects every unsolicited 304 until validator-associated requests exist.
+  204 remains an empty success.
 - Page redirect Retry-After becomes a durable delayed continuation; enormous
   delta-seconds saturate to one day. Robots redirect/429 cooldown is also enforced.
 - Independent Robots budget >=500 KiB and redirect count >=5; bounded TTL/FIFO
