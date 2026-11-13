@@ -1,0 +1,137 @@
+{
+  "source_revision": "cdeeecbbce92b346721d5f4bd018d840d15c49a2",
+  "source_dirty_at_start": false,
+  "full_suite": false,
+  "orchestration_platform": "Windows",
+  "project_target": "native",
+  "groups": [
+    {
+      "group": "contracts",
+      "arguments": [
+        "test",
+        "storage/page_validation_test.mbt",
+        "engine/contracts_test.mbt",
+        "--target",
+        "native",
+        "--warn-list",
+        "-29-79"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "211"
+    },
+    {
+      "group": "resources",
+      "arguments": [
+        "test",
+        "robots/resource_test.mbt",
+        "robots/capacity_test.mbt",
+        "storage/capacity_test.mbt",
+        "--target",
+        "native",
+        "--warn-list",
+        "-29-79"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "67024"
+    },
+    {
+      "group": "queue",
+      "arguments": [
+        "test",
+        "frontier/host_load_test.mbt",
+        "frontier/frontier_test.mbt",
+        "engine/fairness_test.mbt",
+        "--target",
+        "native",
+        "--warn-list",
+        "-29-79"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "1101"
+    },
+    {
+      "group": "protocol",
+      "arguments": [
+        "test",
+        "retry/date_formats_test.mbt",
+        "retry/retry_test.mbt",
+        "security/resolver_test.mbt",
+        "fetcher/headers_test.mbt",
+        "--target",
+        "native",
+        "--warn-list",
+        "-29-79"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "329"
+    },
+    {
+      "group": "persistence",
+      "arguments": [
+        "test",
+        "storage/journal_test.mbt",
+        "storage/identity_test.mbt",
+        "engine/failure_test.mbt",
+        "--target",
+        "native",
+        "--warn-list",
+        "-29-79"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "196"
+    },
+    {
+      "group": "review-protocol",
+      "arguments": [
+        "test",
+        "engine/review_test.mbt",
+        "engine/engine_test.mbt",
+        "parser/rel_test.mbt",
+        "parser/parser_test.mbt",
+        "robots/temporary_test.mbt",
+        "--target",
+        "native",
+        "--warn-list",
+        "-29-79"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "1351"
+    },
+    {
+      "group": "review-network",
+      "arguments": [
+        "test",
+        "security/answers_test.mbt",
+        "security/resolver_test.mbt",
+        "fetcher/pinning_test.mbt",
+        "fetcher/network_test.mbt",
+        "fetcher/attack_test.mbt",
+        "--target",
+        "native",
+        "--warn-list",
+        "-29-79"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "152"
+    },
+    {
+      "group": "review-scale",
+      "arguments": [
+        "test",
+        "frontier/many_hosts_test.mbt",
+        "storage/export_test.mbt",
+        "--target",
+        "native",
+        "--warn-list",
+        "-29-79"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "252"
+    }
+  ],
+  "model_exit": 0,
+  "cli_exit": 0,
+  "crash_probe_exit": 0,
+  "parser_profile_exit": 0,
+  "toolchain": "moon 0.1.20261023 (3778465 2026-10-23) ~\\.moon\\bin\\moon.exe\nmoonc v0.10.17+d971670cd (2026-10-23) \\\\?\\<user>\\.moon\\bin\\moonc.exe\nmoonrun 0.1.20261023 (3778465 2026-10-23) \\\\?\\<user>\\.moon\\bin\\moonrun.exe\n\nFeature flags enabled: rr_moon_mod,rr_moon_pkg\n"
+}

@@ -1,0 +1,27 @@
+[
+  {
+    "stage": "event_staged",
+    "recovered_consistently": true,
+    "termination": "SIGKILL_or_TerminateProcess"
+  },
+  {
+    "stage": "event_published",
+    "recovered_consistently": true,
+    "termination": "SIGKILL_or_TerminateProcess"
+  },
+  {
+    "stage": "checkpoint_staged",
+    "recovered_consistently": true,
+    "termination": "SIGKILL_or_TerminateProcess"
+  },
+  {
+    "stage": "checkpoint_published",
+    "recovered_consistently": true,
+    "termination": "SIGKILL_or_TerminateProcess"
+  },
+  {
+    "stage": "cleanup_started",
+    "recovered_consistently": true,
+    "termination": "SIGKILL_or_TerminateProcess"
+  }
+]
