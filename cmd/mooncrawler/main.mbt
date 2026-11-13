@@ -1,7 +1,7 @@
 ///|
 fn usage() -> Unit {
   println(
-    "MoonCrawler 0.2\n  init CONFIG.json\n  validate CONFIG.json\n  crawl CONFIG.json JOBDIR SEED [SEED ...]\n  resume JOBDIR\n  pause JOBDIR\n  status JOBDIR\n  stats JOBDIR\n  export JOBDIR OUTPUT.jsonl",
+    "MoonCrawler 0.2.2\n  init CONFIG.json\n  validate CONFIG.json\n  crawl CONFIG.json JOBDIR SEED [SEED ...]\n  resume JOBDIR\n  pause JOBDIR\n  status JOBDIR\n  stats JOBDIR\n  export JOBDIR OUTPUT.jsonl",
   )
 }
 
@@ -148,11 +148,7 @@ async fn dispatch(args : Array[String]) -> Unit {
         raise @core.Invalid("export requires JOBDIR OUTPUT.jsonl")
       }
       // Refuse overwrite, including accidental overwrite of the active checkpoint.
-      @fs.write_file(
-        args[3],
-        @storage.jsonl(saved_job(args[2]).pages),
-        create_mode=CreateNew,
-      )
+      @storage.export_jsonl(saved_job(args[2]).pages.iter(), args[3]) |> ignore
       println("JSONL exported")
     }
     "help" | "--help" | "-h" => usage()

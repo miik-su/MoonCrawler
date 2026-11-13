@@ -58,10 +58,16 @@ pub struct FileStore {
   priv mut job_id : String
   priv mut job_config : @core.Config?
   priv mut ledger : @core.PageLedger
+  priv probe : async (String) -> Unit
 }
 
 ///|
-pub async fn FileStore::open(directory : String) -> FileStore {
+/// The optional diagnostic probe runs at publication boundaries. It must not mutate
+/// the store or directory. A probe error after publication has an ambiguous commit outcome.
+pub async fn FileStore::open(
+  directory : String,
+  probe~ : async (String) -> Unit = _ => (),
+) -> FileStore {
   @fs.mkdir(directory, recursive=true, allow_exist=true, permission=0o700)
   if @fs.kind(directory, follow_symlink=false) != Directory {
     raise @core.Storage("job directory must not be a symlink")
@@ -87,6 +93,7 @@ pub async fn FileStore::open(directory : String) -> FileStore {
     job_id: "",
     job_config: None,
     ledger: @core.PageLedger::new(),
+    probe,
   }
 }
 

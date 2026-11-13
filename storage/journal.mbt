@@ -80,13 +80,23 @@ async fn atomic_file(
   name : String,
   text : String,
   replace~ : Bool = false,
+  probe~ : async (String) -> Unit = _ => (),
 ) -> Unit {
   if @utf8.encode(text).length() > 16777216 {
     raise @core.Capacity("job record exceeds write limit")
   }
   let temp = directory + "/staging-" + nonce() + ".tmp"
   @fs.write_file(temp, text, create_mode=CreateNew, permission=0o600, sync=Full)
+  let stage = if name == "index.json" {
+    "checkpoint"
+  } else if name.has_prefix("event-") {
+    "event"
+  } else {
+    "shard"
+  }
+  probe(stage + "_staged")
   @fs.rename(temp, directory + "/" + name, replace~)
+  probe(stage + "_published")
 }
 
 ///|
@@ -184,10 +194,12 @@ async fn FileStore::write_checkpoint(
     "index.json",
     wrap(@json.to_json(index)),
     replace=true,
+    probe=self.probe,
   )
   self.job_config = Some(snapshot.config)
   self.ledger = @core.PageLedger::new()
   self.ledger.commit(snapshot.config, snapshot.pages)
+  (self.probe)("cleanup_started")
   for name in @fs.readdir(self.directory) {
     let old_shard = name.has_prefix("shard-") &&
       name.has_suffix(".json") &&
@@ -239,7 +251,12 @@ pub impl Storage for FileStore with fn commit_batch(
   if @utf8.encode(record).length() > 16777216 {
     raise @core.Capacity("incremental batch exceeds 16 MiB")
   }
-  atomic_file(self.directory, "event-\{sequence}.json", record)
+  atomic_file(
+    self.directory,
+    "event-\{sequence}.json",
+    record,
+    probe=self.probe,
+  )
   self.sequence = sequence
   self.ledger.commit(config, pages)
 }

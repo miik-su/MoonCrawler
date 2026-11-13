@@ -1,0 +1,11 @@
+import {
+  "miik-su/mooncrawler/core",
+  "miik-su/mooncrawler/frontier",
+  "miik-su/mooncrawler/url",
+  "miik-su/mooncrawler/storage",
+  "moonbitlang/core/env",
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+}
+
+pkgtype(kind: "executable")

@@ -1,0 +1,29 @@
+----
+import {
+  "moonbitlang/async@0.22.5", "moonbitlang/async@0.22.5/fs",
+  "moonbitlang/async@0.22.5/shell", "moonbitlang/async@0.22.5/process",
+  "moonbitlang/core/json",
+}
+----
+async fn main {
+  let build = @shell.Cmd("moon", ["build", "cmd/recovery_probe", "--target", "native", "--debug"]).output()
+  build.check()
+  let program = "_build/native/debug/build/cmd/recovery_probe/recovery_probe.exe"
+  let rows : Array[Json] = []
+  for stage in ["event_staged", "event_published", "checkpoint_staged", "checkpoint_published", "cleanup_started"] {
+    let dir = @fs.tmpdir(prefix="crawler-kill-")
+    defer @fs.rmdir(dir, recursive=true)
+    @shell.Cmd(program, ["init", dir]).run()
+    @async.with_timeout(15000, () => @async.with_task_group(group => {
+      let child = @process.spawn(group, program, ["write", dir, stage], no_wait=true, no_console_window=true, cancel_handler=@process.hard_cancel())
+      while !@fs.exists(dir + "/ready") { @async.sleep(10) }
+      assert_eq(@fs.read_file(dir + "/ready").text(), stage)
+      child.cancel()
+      ignore(child.wait() catch { _ => 0 })
+    }))
+    let out = @shell.Cmd(program, ["verify", dir, stage]).output()
+    out.check()
+    rows.push({"stage": @json.to_json(stage), "recovered_consistently": true, "termination": "SIGKILL_or_TerminateProcess"})
+  }
+  println(@json.to_json(rows).stringify(indent=2))
+}
