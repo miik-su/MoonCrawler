@@ -17,3 +17,8 @@ import {
 options(
   supported_targets: "native",
 )
+
+import {
+  "moonbitlang/async/socket",
+  "moonbitlang/async/http",
+} for "test"
