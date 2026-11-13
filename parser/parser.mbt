@@ -36,6 +36,18 @@ fn add_unique(
 }
 
 ///|
+/// HTML space-separated tokens use exactly the five ASCII whitespace characters.
+fn has_rel(value : String, token : String) -> Bool {
+  let normalized = value
+    .to_lower()
+    .replace_all(old="\t", new=" ")
+    .replace_all(old="\n", new=" ")
+    .replace_all(old="\r", new=" ")
+    .replace_all(old="\u000c", new=" ")
+  normalized.split(" ").any(part => part == token)
+}
+
+///|
 /// HTML5 DOM supplied by moonbit-community/html. Iterative traversal avoids recursive extraction.
 pub fn extract(response : @core.Response) -> @core.Page raise @core.CrawlError {
   let ct = response.headers.get("content-type").unwrap_or("").to_lower()
@@ -78,7 +90,7 @@ pub fn extract(response : @core.Response) -> @core.Page raise @core.CrawlError {
         }
       Some("a") | Some("area") => {
         let rel = doc.get_attribute(i, "rel").unwrap_or("").to_lower()
-        if !rel.split(" ").any(x => x == "nofollow") {
+        if !has_rel(rel, "nofollow") {
           if doc.get_attribute(i, "href") is Some(href) {
             add_unique(links, seen_links, link(base, href))
           }
@@ -97,7 +109,7 @@ pub fn extract(response : @core.Response) -> @core.Page raise @core.CrawlError {
           }
         }
       Some("link") =>
-        if doc.get_attribute(i, "rel").unwrap_or("").to_lower() == "canonical" {
+        if has_rel(doc.get_attribute(i, "rel").unwrap_or(""), "canonical") {
           if doc.get_attribute(i, "href") is Some(href) {
             canonical = link(base, href).unwrap_or("")
           }
