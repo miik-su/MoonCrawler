@@ -1,0 +1,57 @@
+----
+import {
+  "moonbitlang/async@0.22.5", "moonbitlang/async@0.22.5/fs", "moonbitlang/async@0.22.5/shell",
+  "moonbitlang/async@0.22.5/process", "moonbitlang/core/json", "moonbitlang/core/string",
+}
+----
+async fn main {
+  let build = @shell.Cmd("moon", ["build", "cmd/storage_probe", "--target", "native", "--debug"]).output()
+  build.check()
+  let program = "_build/native/debug/build/cmd/storage_probe/storage_probe.exe"
+  let dir = @fs.tmpdir(prefix="crawler-storage-profile-")
+  defer @fs.rmdir(dir, recursive=true)
+  @shell.Cmd(program, ["init", dir]).run(timeout_ms=120000)
+  let rows : Array[Json] = []
+  for mode in ["full", "catalog"] {
+    let row : Json = @async.with_timeout(120000, () => @async.with_task_group(group => {
+      let child = @process.spawn(group, program, [mode, dir], no_wait=true, no_console_window=true, cancel_handler=@process.hard_cancel())
+      while !@fs.exists(dir + "/ready.json") { @async.sleep(10) }
+      let data = @json.parse(@fs.read_file(dir + "/ready.json").text())
+      let (bytes, measurement) : (Int64, String) = match @async.platform {
+        Windows => {
+          let out = @shell.Cmd("powershell", ["-NoProfile", "-Command", "(Get-Process -Id " + child.pid.to_string() + ").PeakWorkingSet64"]).output()
+          out.check()
+          (@string.parse_int64(out.stdout().trim()), "Windows PeakWorkingSet64")
+        }
+        Linux => {
+          let status = @fs.read_file("/proc/" + child.pid.to_string() + "/status").text()
+          let line = status.split("\n").filter(line => line.has_prefix("VmHWM:")).to_array()[0].to_owned()
+          let number = line.split(":").to_array()[1].trim().to_owned().split(" ").to_array()[0]
+          (@string.parse_int64(number) * 1024L, "Linux VmHWM")
+        }
+        MacOS => {
+          let out = @shell.Cmd("ps", ["-o", "rss=", "-p", child.pid.to_string()]).output()
+          out.check()
+          (@string.parse_int64(out.stdout().trim()) * 1024L, "macOS sampled RSS (not peak)")
+        }
+      }
+      @fs.write_file(dir + "/release", "done")
+      assert_eq(child.wait(), 0)
+      @fs.remove(dir + "/ready.json")
+      @fs.remove(dir + "/release")
+      {"probe": data, "memory_bytes": @json.to_json(bytes), "memory_method": @json.to_json(measurement), "includes_runtime_and_buffers": true}
+    }))
+    rows.push(row)
+  }
+  // Count complete records without constructing the aggregate output string.
+  for mode in ["full", "catalog"] {
+    let file = @fs.open(dir + "/" + mode + ".jsonl", mode=ReadOnly)
+    defer file.close()
+    let mut lines = 0
+    while file.read_until("\n") is Some(line) {
+      if !line.trim().is_empty() { @json.parse(line) |> ignore; lines += 1 }
+    }
+    assert_eq(lines, 65)
+  }
+  println(@json.to_json(rows).stringify(indent=2))
+}
