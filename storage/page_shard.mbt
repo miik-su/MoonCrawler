@@ -14,6 +14,11 @@ async fn FileStore::page_shard(
     pages,
     saved_at: now,
   }
-  atomic_file(self.directory, name, wrap(@json.to_json(value)))
+  atomic_file(
+    self.directory,
+    name,
+    wrap(@json.to_json(value)),
+    probe=self.probe,
+  )
   name
 }

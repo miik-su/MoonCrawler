@@ -43,6 +43,17 @@ pub fn MemoryStore::new() -> Self
 pub async fn MemoryStore::save(Self, Snapshot) -> Unit
 pub impl Storage for MemoryStore
 
+pub struct PageReader {
+  // private fields
+}
+pub fn PageReader::close(Self) -> Unit
+pub async fn PageReader::export_jsonl(Self, String) -> Int32
+pub fn PageReader::max_batch_pages(Self) -> Int32
+pub async fn PageReader::open(String) -> Self
+pub fn PageReader::page_count(Self) -> Int32
+pub async fn PageReader::read_page(Self, String) -> @core.Page?
+pub async fn PageReader::visit_pages(Self, async (@core.Page) -> Unit) -> Unit
+
 pub(all) struct Snapshot {
   version : Int32
   config : @core.Config

@@ -13,3 +13,7 @@ import {
   "moonbitlang/async",
   "miik-su/mooncrawler/frontier",
 } for "test"
+
+import {
+  "moonbitlang/async",
+} for "wbtest"

@@ -82,17 +82,31 @@ async fn atomic_file(
   replace~ : Bool = false,
   probe~ : async (String) -> Unit = _ => (),
 ) -> Unit {
-  if @utf8.encode(text).length() > 16777216 {
+  let encoded = @utf8.encode(text)
+  if encoded.length() > 16777216 {
     raise @core.Capacity("job record exceeds write limit")
   }
   let temp = directory + "/staging-" + nonce() + ".tmp"
-  @fs.write_file(temp, text, create_mode=CreateNew, permission=0o600, sync=Full)
   let stage = if name == "index.json" {
     "checkpoint"
   } else if name.has_prefix("event-") {
     "event"
   } else {
     "shard"
+  }
+  {
+    let file = @fs.open(
+      temp,
+      mode=WriteOnly,
+      create_mode=CreateNew,
+      permission=0o600,
+    )
+    defer file.close()
+    let half = encoded.length() / 2
+    file.write(encoded[:half].to_owned())
+    probe(stage + "_partial")
+    file.write(encoded[half:].to_owned())
+    file.sync()
   }
   probe(stage + "_staged")
   @fs.rename(temp, directory + "/" + name, replace~)
@@ -161,6 +175,7 @@ async fn FileStore::write_checkpoint(
           saved_at: snapshot.saved_at,
         }),
       ),
+      probe=self.probe,
     )
     shards.push(name)
   }
@@ -211,8 +226,13 @@ async fn FileStore::write_checkpoint(
       false
     }
     if old_shard || old_event {
-      @fs.remove(self.directory + "/" + name) catch {
-        _ => ()
+      let removed = try @fs.remove(self.directory + "/" + name) catch {
+        _ => false
+      } noraise {
+        _ => true
+      }
+      if removed {
+        (self.probe)("cleanup_removed")
       }
     }
   }
@@ -273,80 +293,18 @@ async fn recover(directory : String) -> (Snapshot?, Int32, String) {
     validate(legacy)
     return (Some(legacy), 0, "")
   }
-  let index_json = unwrapped(directory + "/index.json")
-  if index_json is Object(fields) {
-    if fields.get("config") is Some(config) {
-      fields["config"] = @core.upgrade_config(config)
-    }
-  }
-  let index : Index = @json.from_json(index_json)
-  if index.format != 2 || index.sequence < 0 {
-    raise @core.Storage("unsupported job index")
-  }
-  let mut snapshot = Snapshot::{
-    version: 1,
-    config: index.config,
-    tasks: [],
-    pages: [],
-    saved_at: index.saved_at,
-  }
-  let tasks : Map[String, @core.Task] = Map([])
   let pages : Map[String, @core.Page] = Map([])
-  let ledger = @core.PageLedger::new()
-  for name in index.shards {
-    if !name.has_prefix("shard-") || name.contains_any(chars="/\\:") {
-      raise @core.Storage("invalid shard path")
-    }
-    let shard : Delta = @json.from_json(unwrapped(directory + "/" + name))
-    if shard.sequence != index.sequence || shard.job_id != index.job_id {
-      raise @core.Storage("checkpoint sequence mismatch")
-    }
-    for task in shard.tasks {
-      tasks[task.request.url.key(include_query=index.config.include_query)] = task
-    }
-    for page in shard.pages {
+  let catalog = scan_catalog(directory, retain=batch => {
+    for page in batch {
       pages[page.url] = page
     }
-    ledger.commit(index.config, shard.pages)
-  }
-  let mut sequence = index.sequence
-  let events : Array[Int32] = []
-  for name in @fs.readdir(directory) {
-    if name.has_prefix("event-") && name.has_suffix(".json") {
-      let seq = @string.parse_int(name[6:name.length() - 5]) catch {
-        _ => raise @core.Storage("invalid journal filename")
-      }
-      if seq > sequence {
-        events.push(seq)
-      }
-    }
-  }
-  events.sort()
-  for seq in events {
-    if seq != sequence + 1 {
-      raise @core.Storage("journal sequence gap")
-    }
-    let delta : Delta = @json.from_json(
-      unwrapped(directory + "/event-\{seq}.json"),
-    )
-    if delta.sequence != seq || delta.job_id != index.job_id {
-      raise @core.Storage("journal sequence mismatch")
-    }
-    for task in delta.tasks {
-      tasks[task.request.url.key(include_query=index.config.include_query)] = task
-    }
-    for page in delta.pages {
-      pages[page.url] = page
-    }
-    ledger.commit(index.config, delta.pages)
-    snapshot = { ..snapshot, saved_at: delta.saved_at, }
-    sequence = seq
-  }
-  snapshot = {
-    ..snapshot,
-    tasks: tasks.values().to_array(),
+  })
+  let snapshot = Snapshot::{
+    version: 1,
+    config: catalog.config,
+    tasks: catalog.tasks,
     pages: pages.values().to_array(),
+    saved_at: catalog.saved_at,
   }
-  validate(snapshot)
-  (Some(snapshot), sequence, index.job_id)
+  (Some(snapshot), catalog.sequence, catalog.job_id)
 }
