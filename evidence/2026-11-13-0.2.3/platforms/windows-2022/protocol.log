@@ -1,0 +1,7 @@
+Total tests: 4, passed: 4, failed: 0.
+   Creating library D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\security\security.internal_test.lib and object D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\security\security.internal_test.exp
+   Creating library D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\fetcher\fetcher.internal_test.lib and object D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\fetcher\fetcher.internal_test.exp
+   Creating library D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\retry\retry.internal_test.lib and object D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\retry\retry.internal_test.exp
+   Creating library D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\retry\retry.blackbox_test.lib and object D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\retry\retry.blackbox_test.exp
+   Creating library D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\security\security.blackbox_test.lib and object D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\security\security.blackbox_test.exp
+   Creating library D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\fetcher\fetcher.blackbox_test.lib and object D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\fetcher\fetcher.blackbox_test.exp

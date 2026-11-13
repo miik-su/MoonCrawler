@@ -1,0 +1,58 @@
+[
+  {
+    "probe": {
+      "fixture": "nested",
+      "input_units": 22004,
+      "elapsed_ms": "79",
+      "result": {
+        "outcome": "parsed",
+        "text_units": 4
+      }
+    },
+    "memory_bytes": "6729728",
+    "memory_method": "Windows PeakWorkingSet64",
+    "includes_runtime_and_input": true
+  },
+  {
+    "probe": {
+      "fixture": "malformed",
+      "input_units": 9000,
+      "elapsed_ms": "0",
+      "result": {
+        "outcome": "parsed",
+        "text_units": 1199
+      }
+    },
+    "memory_bytes": "5976064",
+    "memory_method": "Windows PeakWorkingSet64",
+    "includes_runtime_and_input": true
+  },
+  {
+    "probe": {
+      "fixture": "long_attribute",
+      "input_units": 500024,
+      "elapsed_ms": "47",
+      "result": {
+        "outcome": "parsed",
+        "text_units": 4
+      }
+    },
+    "memory_bytes": "11939840",
+    "memory_method": "Windows PeakWorkingSet64",
+    "includes_runtime_and_input": true
+  },
+  {
+    "probe": {
+      "fixture": "entities",
+      "input_units": 300007,
+      "elapsed_ms": "250",
+      "result": {
+        "outcome": "parsed",
+        "text_units": 60000
+      }
+    },
+    "memory_bytes": "9302016",
+    "memory_method": "Windows PeakWorkingSet64",
+    "includes_runtime_and_input": true
+  }
+]

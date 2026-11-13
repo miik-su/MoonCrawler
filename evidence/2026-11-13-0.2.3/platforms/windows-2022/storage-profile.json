@@ -1,0 +1,26 @@
+[
+  {
+    "probe": {
+      "mode": "full",
+      "pages": 65,
+      "text_payload_bytes": 68157440,
+      "max_batch_pages": 65,
+      "wall_elapsed_ms": "25702"
+    },
+    "memory_bytes": "159850496",
+    "memory_method": "Windows PeakWorkingSet64",
+    "includes_runtime_and_buffers": true
+  },
+  {
+    "probe": {
+      "mode": "catalog",
+      "pages": 65,
+      "text_payload_bytes": 68157440,
+      "max_batch_pages": 3,
+      "wall_elapsed_ms": "22277"
+    },
+    "memory_bytes": "32153600",
+    "memory_method": "Windows PeakWorkingSet64",
+    "includes_runtime_and_buffers": true
+  }
+]
