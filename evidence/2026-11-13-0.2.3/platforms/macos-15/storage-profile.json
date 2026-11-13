@@ -1,0 +1,26 @@
+[
+  {
+    "probe": {
+      "mode": "full",
+      "pages": 65,
+      "text_payload_bytes": 68157440,
+      "max_batch_pages": 65,
+      "wall_elapsed_ms": "19844"
+    },
+    "memory_bytes": "207929344",
+    "memory_method": "macOS sampled RSS (not peak)",
+    "includes_runtime_and_buffers": true
+  },
+  {
+    "probe": {
+      "mode": "catalog",
+      "pages": 65,
+      "text_payload_bytes": 68157440,
+      "max_batch_pages": 3,
+      "wall_elapsed_ms": "17312"
+    },
+    "memory_bytes": "39649280",
+    "memory_method": "macOS sampled RSS (not peak)",
+    "includes_runtime_and_buffers": true
+  }
+]
