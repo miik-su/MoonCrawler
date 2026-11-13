@@ -1,0 +1,37 @@
+{
+  "workflow_run_id": "43421224981",
+  "workflow_url": "https://github.com/miik-su/MoonCrawler/actions/runs/43421224981",
+  "source_revision": "76a44fea4e44751b000878a38a8b0b7da54af964",
+  "platforms": [
+    {
+      "platform": "windows-2022",
+      "conclusion": "success",
+      "focused_groups": 10,
+      "full_suite": false,
+      "job_id": "131871432358",
+      "artifact_id": "14033788548",
+      "archive_sha256": "4116df14a8ce6b054823c6e5746c87648e358a17bccfcb0189b147503b70ba80",
+      "source_revision": "76a44fea4e44751b000878a38a8b0b7da54af964"
+    },
+    {
+      "platform": "ubuntu-24.04",
+      "conclusion": "success",
+      "focused_groups": 10,
+      "full_suite": false,
+      "job_id": "131871432506",
+      "artifact_id": "14034825858",
+      "archive_sha256": "fe84ba6c713dd62e000e9ffe0bbd3cd69048a8184b5fdca60fa19cd590e03d14",
+      "source_revision": "76a44fea4e44751b000878a38a8b0b7da54af964"
+    },
+    {
+      "platform": "macos-15",
+      "conclusion": "success",
+      "focused_groups": 10,
+      "full_suite": false,
+      "job_id": "131871432638",
+      "artifact_id": "14033642705",
+      "archive_sha256": "faff5dfbab0393e1c03b31a919dbf7c10bad599d4e7361b451aeae35d6d08795",
+      "source_revision": "76a44fea4e44751b000878a38a8b0b7da54af964"
+    }
+  ]
+}

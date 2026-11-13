@@ -9,6 +9,10 @@ Reproduce using `moon run tools/publish_evidence.mbtx 2026-11-13-0.2.3`.
 The automatic focused workflow now targets all three operating systems. Its
 platform results/artifacts are authoritative for what actually ran; no full suite
 was requested or invoked. macOS memory values are sampled RSS rather than peaks.
+The [completed matrix run](https://github.com/miik-su/MoonCrawler/actions/runs/43421224981)
+passed on Windows 2022, Ubuntu 24.04 and macOS 15 at source `76a44fe`.
+[Permanent platform logs and JSON](../evidence/2026-11-13-0.2.3/platforms/README.md)
+include the original artifact ZIP digests, source identity and measured results.
 
 ## Historical: 0.2.2 (2026-11-13)
 

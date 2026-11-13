@@ -61,6 +61,13 @@ that image on 2026-11-02; both workflows now select macos-15 (Arm64). See the
 [official retirement notice](https://github.blog/changelog/2026-10-01-github-actions-macos-14-runner-image-retirement/).
 Cancelled pre-run jobs are not counted as tested platforms.
 
+The replacement [focused matrix run](https://github.com/miik-su/MoonCrawler/actions/runs/43421224981)
+completed successfully on Windows 2022, Ubuntu 24.04 and macOS 15 for source
+`76a44fea4e44751b000878a38a8b0b7da54af964`. The three artifact ZIP SHA-256 values
+were checked against GitHub metadata before retaining their raw files in
+[platform evidence](../evidence/2026-11-13-0.2.3/platforms/README.md).
+This establishes focused cross-platform results, not full release certification.
+
 ## Remaining boundaries
 
 - Engine-wide lazy body retention/streaming resume is still future work.

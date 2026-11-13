@@ -6,7 +6,7 @@ and performance verification remain release gates.
 
 | Area | Implemented profile / limit |
 | --- | --- |
-| Runtime | native; focused CI targets Windows, Ubuntu and macOS with separate artifacts; full certification remains pending |
+| Runtime | native; Windows 2022, Ubuntu 24.04 and macOS 15 focused checks passed with archived evidence; full certification remains pending |
 | URL | ASCII HTTP(S), punycode IDNs, IPv4/DNS, 8192 code units; query retained by default |
 | Normalization | host/scheme case, default ports, fragments, dot segments, unreserved escapes; preserves query order and reserved escapes |
 | Network | public IPv4, ports 80/443; private, metadata, loopback, special-use and ambiguous numeric forms blocked |

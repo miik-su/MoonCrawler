@@ -5,6 +5,7 @@ MoonBit 原生、模块化的静态网页爬取引擎。
 工作流程：URL 规范化 → Host 分组队列 → 默认 curl 安全传输 → Robots / 域名调度 → HTML 提取 → Pipeline → 增量持久化与重启恢复。
 
 当前版本 **0.2.3**。参见[最新完善说明](docs/review-0.2.3.md)及[测试数据和实际结果](evidence/2026-11-13-0.2.3/README.md)。
+[Windows / Ubuntu / macOS 定向 CI 结果](evidence/2026-11-13-0.2.3/platforms/README.md)已保存原始日志和内存数据。
 [支持范围与发布待办](docs/compatibility.md) 明确列出限制。
 
 ## 快速开始
