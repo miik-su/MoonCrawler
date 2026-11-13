@@ -14,7 +14,8 @@ pub struct Cache {
 }
 pub fn Cache::get(Self, String, Int64) -> Rules?
 pub fn Cache::new(capacity? : Int32) -> Self
-pub fn Cache::update(Self, String, Int32, String, Int64) -> Rules
+pub fn Cache::retry_in(Self, String, Int64) -> Int32?
+pub fn Cache::update(Self, String, Int32, String, Int64, retry_after_ms? : Int32) -> Rules
 
 pub struct Rules {
   sitemaps : Array[String]

@@ -10,11 +10,18 @@ pub struct Rules {
   sitemaps : Array[String]
   priv limited : Bool
   priv bytes : Int32
+  priv temporary : Bool
 }
 
 ///|
 pub fn parse(text : String) -> Rules {
-  let denied : Rules = { groups: [], sitemaps: [], limited: true, bytes: 64, }
+  let denied : Rules = {
+    groups: [],
+    sitemaps: [],
+    limited: true,
+    bytes: 64,
+    temporary: false,
+  }
   if text.length() > 1048576 {
     return denied
   }
@@ -70,6 +77,7 @@ pub fn parse(text : String) -> Rules {
     sitemaps,
     limited: false,
     bytes: @utf8.encode(text).length() * 2 + 64,
+    temporary: false,
   }
 }
 
@@ -233,6 +241,16 @@ pub fn Cache::get(self : Cache, origin : String, now : Int64) -> Rules? {
 }
 
 ///|
+/// Remaining monotonic cooldown for an unreachable origin; None means a rule decision.
+pub fn Cache::retry_in(self : Cache, origin : String, now : Int64) -> Int32? {
+  match self.entries.get(origin) {
+    Some((rules, expires)) if rules.temporary && expires > now =>
+      Some((expires - now).to_int())
+    _ => None
+  }
+}
+
+///|
 /// 4xx except 429 = unavailable/allow; network, 429 and 5xx = deny for five minutes.
 pub fn Cache::update(
   self : Cache,
@@ -240,6 +258,7 @@ pub fn Cache::update(
   status : Int32,
   body : String,
   now : Int64,
+  retry_after_ms~ : Int32 = 0,
 ) -> Rules {
   let expired = self.entries
     .iter()
@@ -262,7 +281,10 @@ pub fn Cache::update(
   } else if status >= 400 && status < 500 && status != 429 {
     (parse(""), 3600000L)
   } else {
-    (parse("User-agent: *\nDisallow: /"), 300000L)
+    (
+      { ..parse("User-agent: *\nDisallow: /"), temporary: true, },
+      300000L.max(retry_after_ms.max(0).min(86400000).to_int64()),
+    )
   }
   self.order.retain(key => self.entries.contains(key) && key != origin)
   while self.entries.values().fold(init=0, (sum, entry) => sum + entry.0.bytes) +
