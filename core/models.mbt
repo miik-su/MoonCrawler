@@ -10,6 +10,7 @@ pub(all) suberror CrawlError {
   StaleLease
   Policy(String)
   RobotsDenied
+  RobotsTemporarilyUnavailable(Int32)
   Paused
 } derive(Debug)
 
@@ -111,7 +112,7 @@ pub fn Config::default() -> Config {
     max_redirects: 5,
     max_attempts: 3,
     lease_ms: 120000,
-    user_agent: "MoonCrawler/0.1",
+    user_agent: "MoonCrawler/0.2.2",
     allowed_hosts: [],
     denied_paths: [],
     denied_extensions: [".pdf", ".zip", ".png", ".jpg", ".js", ".css"],

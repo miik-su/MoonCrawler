@@ -28,6 +28,7 @@ pub(all) suberror CrawlError {
   StaleLease
   Policy(String)
   RobotsDenied
+  RobotsTemporarilyUnavailable(Int32)
   Paused
 } derive(@debug.Debug)
 pub fn CrawlError::to_repr(Self) -> @debug.Repr
