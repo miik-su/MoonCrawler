@@ -200,11 +200,26 @@ async fn Engine::allowed_by_robots(self : Engine, url : @url.Url) -> Bool {
           if r.status == 429 || r.status == 503 {
             self.defer_response(r, target.host)
           }
-          self.robots.update(url.origin(), r.status, r.body, @async.now())
+          let floor = r.headers
+            .get("retry-after")
+            .map(v => {
+              @retry.retry_after(v, now_ms=@clock.epoch_ms()).unwrap_or(0)
+            })
+            .unwrap_or(0)
+          self.robots.update(
+            url.origin(),
+            r.status,
+            r.body,
+            @async.now(),
+            retry_after_ms=floor,
+          )
         }
         None => self.robots.update(url.origin(), 503, "", @async.now())
       }
     }
+  }
+  if self.robots.retry_in(url.origin(), @async.now()) is Some(delay) {
+    raise @core.RobotsTemporarilyUnavailable(delay)
   }
   rules.allows(self.config.user_agent, url.path + url.query)
 }
@@ -280,10 +295,10 @@ async fn Engine::execute(self : Engine, lease : @core.Task) -> Unit {
     )
     return
   }
-  if response.status == 304 && !self.pages.contains(target.key()) {
-    raise @core.Protocol("304 without cached representation")
+  if response.status == 304 {
+    raise @core.Protocol("unsolicited 304: Engine sent no conditional request")
   }
-  if response.status == 304 || response.status == 204 {
+  if response.status == 204 {
     self.frontier.complete(lease)
     return
   }
@@ -374,6 +389,13 @@ async fn Engine::worker(self : Engine, should_stop : async () -> Bool) -> Unit {
           }
           @core.RobotsDenied =>
             self.frontier.skip(lease, BlockedByRobots, "robots denied")
+          @core.RobotsTemporarilyUnavailable(delay) =>
+            self.frontier.fail(
+              lease,
+              @clock.epoch_ms(),
+              "robots temporarily unavailable",
+              retry_delay=delay,
+            )
           @core.Policy(message) =>
             self.frontier.skip(lease, SkippedByPolicy, message)
           @core.Network(_) | @async.TimeoutError =>
