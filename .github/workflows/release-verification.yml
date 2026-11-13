@@ -27,3 +27,11 @@ jobs:
       - if: inputs.full_suite
         run: moon test --target native
       - run: moon run tools/cli_smoke.mbtx
+      - name: Capture focused platform evidence
+        if: always()
+        run: moon run tools/publish_evidence.mbtx
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native-evidence-${{ matrix.os }}
+          path: evidence/2026-11-13/

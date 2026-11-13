@@ -10,6 +10,8 @@ async fn run(program : String, args : Array[String]) -> (Int, String) {
   (out.exit_code(), text)
 }
 async fn main {
+  let date = @env.args().get(1).unwrap_or("2026-11-13")
+  assert_true(date.length() == 10 && date.iter().all(c => (c >= '0' && c <= '9') || c == '-'))
   let revision = run("git", ["rev-parse", "HEAD"]).1.trim().to_owned()
   let dirty = !run("git", ["status", "--porcelain", "--", ".", ":(exclude)evidence"]).1.trim().is_empty()
   let versions = run("moon", ["version", "--all"]).1
@@ -20,11 +22,14 @@ async fn main {
     ("queue", ["frontier/host_load_test.mbt", "frontier/frontier_test.mbt", "engine/fairness_test.mbt"]),
     ("protocol", ["retry/date_formats_test.mbt", "retry/retry_test.mbt", "security/resolver_test.mbt", "fetcher/headers_test.mbt"]),
     ("persistence", ["storage/journal_test.mbt", "storage/identity_test.mbt", "engine/failure_test.mbt"]),
+    ("review-protocol", ["engine/review_test.mbt", "engine/engine_test.mbt", "parser/rel_test.mbt", "parser/parser_test.mbt", "robots/temporary_test.mbt"]),
+    ("review-network", ["security/answers_test.mbt", "security/resolver_test.mbt", "fetcher/pinning_test.mbt", "fetcher/network_test.mbt", "fetcher/attack_test.mbt"]),
+    ("review-scale", ["frontier/many_hosts_test.mbt", "storage/export_test.mbt"]),
   ]
   let rows : Array[Json] = []
   let logs : Array[(String, String)] = []
   let summary = StringBuilder()
-  summary.write_string("# Focused test evidence — 2026-11-10\n\nTested source: `" + revision + "`\n\nFull suite: **not run**. Runner: " + platform + ". Selected project tests use native; orchestration uses MoonBit script mode. Results describe fixtures, not security certification.\n\n| Group | Exit | Elapsed ms | Raw log |\n| --- | ---: | ---: | --- |\n")
+  summary.write_string("# Focused test evidence — " + date + "\n\nTested source: `" + revision + "`\n\nFull suite: **not run**. Runner: " + platform + ". Selected project tests use native; orchestration uses MoonBit script mode. Results describe fixtures, not security certification.\n\n| Group | Exit | Elapsed ms | Raw log |\n| --- | ---: | ---: | --- |\n")
   let mut failed = false
   for (name, files) in groups {
     let args = ["test"]
@@ -41,15 +46,21 @@ async fn main {
   let (model_code, model) = run("moon", ["run", "cmd/evidence", "--target", "native", "--quiet"])
   if model_code == 0 { @json.parse(model) |> ignore }
   let (cli_code, cli) = run("moon", ["run", "tools/cli_smoke.mbtx"])
-  if model_code != 0 || cli_code != 0 { failed = true }
-  let dir = "evidence/2026-11-10"
+  let (crash_code, crash) = run("moon", ["run", "tools/crash_probe.mbtx"])
+  let (profile_code, profile) = run("moon", ["run", "tools/parser_profile.mbtx"])
+  if crash_code == 0 { @json.parse(crash) |> ignore }
+  if profile_code == 0 { @json.parse(profile) |> ignore }
+  if model_code != 0 || cli_code != 0 || crash_code != 0 || profile_code != 0 { failed = true }
+  let dir = "evidence/" + date
   @fs.mkdir(dir, recursive=true, allow_exist=true)
   for (path, data) in logs { @fs.write_file(dir + "/" + path, data) }
   @fs.write_file(dir + "/model.json", model)
   @fs.write_file(dir + "/cli.log", cli)
-  let report : Json = {"source_revision": @json.to_json(revision), "source_dirty_at_start": @json.to_json(dirty), "full_suite": false, "orchestration_platform": @json.to_json(platform), "project_target": "native", "groups": @json.to_json(rows), "model_exit": @json.to_json(model_code), "cli_exit": @json.to_json(cli_code), "toolchain": @json.to_json(versions)}
+  @fs.write_file(dir + "/crash.json", crash)
+  @fs.write_file(dir + "/parser-profile.json", profile)
+  let report : Json = {"source_revision": @json.to_json(revision), "source_dirty_at_start": @json.to_json(dirty), "full_suite": false, "orchestration_platform": @json.to_json(platform), "project_target": "native", "groups": @json.to_json(rows), "model_exit": @json.to_json(model_code), "cli_exit": @json.to_json(cli_code), "crash_probe_exit": @json.to_json(crash_code), "parser_profile_exit": @json.to_json(profile_code), "toolchain": @json.to_json(versions)}
   @fs.write_file(dir + "/results.json", report.stringify(indent=2))
-  summary.write_string("\n[Machine-readable results](results.json) · [100K queue model](model.json) · [CLI log](cli.log)\n\nModel inputs: 99,999 `https://a.example/{i}` tasks and one `https://b.example/` task. No public network access; this measures candidate checks and wall duration, not CPU time or peak memory. The 65 MiB persistence test measures an aggregate round-trip, not constant-memory operation.\n")
+  summary.write_string("\n[Machine-readable results](results.json) · [Queue models](model.json) · [CLI log](cli.log) · [Forced process termination](crash.json) · [Parser resource profile](parser-profile.json)\n\nQueue inputs: 99,999 `https://a.example/{i}` tasks plus one `https://b.example/` task; separately 10,000 distinct `h{i}.example` hosts. No public network access. Candidate checks and wall duration are measured, not CPU time. Per-claim host scanning remains linear. The 65 MiB persistence test is an aggregate round-trip, not constant-memory operation.\n\nThe parser profile uses a fresh native debug process for each fixture: 2,000 nested divs; 600 malformed formatting groups; a 500,000-unit attribute; 60,000 entities. OS counters include input generation and runtime. Windows records PeakWorkingSet64, Linux VmHWM, macOS only a sampled RSS (not peak). These measurements do not establish a hard DOM allocation bound. A 30-second controller timeout stops stalled fixtures.\n\nCrash fixtures force SIGKILL/TerminateProcess at five publication boundaries; this is not a power-cut or disk-cache-loss test. Network fixtures use an injected resolver with actual loopback curl plus mixed-answer checks; authoritative DNS/TTL rebinding remains a separate release gate.\n")
   @fs.write_file(dir + "/README.md", summary.to_string())
   if failed { fail("Evidence includes failures; inspect logs") }
   println("Published local evidence files for " + revision)
