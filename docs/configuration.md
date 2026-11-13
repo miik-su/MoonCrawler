@@ -23,7 +23,7 @@ when resuming. No credentials are saved by the bundled adapter.
 | max_total_metadata_bytes | 16777216 | aggregate serialized metadata, no larger than the page budget |
 | max_attempts | 3 | total attempts including first, 1..10 |
 | lease_ms | 120000 | Frontier library deadline; Engine uses restart recovery, not runtime lease stealing |
-| user_agent | MoonCrawler/0.2.2 | crawler product token/version, no CR/LF; saved/custom values remain unchanged |
+| user_agent | MoonCrawler/0.2.3 | crawler product token/version, no CR/LF; saved/custom values remain unchanged |
 | allowed_hosts | [] | exact normalized hostname allowlist; empty is rejected by default |
 | allow_any_public_host | false | explicit opt-in to open public crawling when allowlist is empty |
 | schema_version | 2 | known legacy keys migrated; unsupported versions rejected |

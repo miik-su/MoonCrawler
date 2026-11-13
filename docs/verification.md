@@ -1,6 +1,16 @@
 # Focused verification
 
-## Latest: 0.2.2 (2026-11-13)
+## Latest: 0.2.3 (2026-11-13)
+
+See [new evidence](../evidence/2026-11-13-0.2.3/README.md) for ten focused groups,
+actual UDP DNS A records with TTL=0 and a real curl/HTTP redirect, eleven forced
+process-kill stages and a 65 MiB full-restore versus catalog-export comparison.
+Reproduce using `moon run tools/publish_evidence.mbtx 2026-11-13-0.2.3`.
+The automatic focused workflow now targets all three operating systems. Its
+platform results/artifacts are authoritative for what actually ran; no full suite
+was requested or invoked. macOS memory values are sampled RSS rather than peaks.
+
+## Historical: 0.2.2 (2026-11-13)
 
 See [recorded results and raw logs](../evidence/2026-11-13/README.md) and
 [remediation boundaries](review-0.2.2.md). New selected fixtures cover Robots

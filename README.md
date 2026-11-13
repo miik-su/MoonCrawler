@@ -4,7 +4,7 @@ MoonBit 原生、模块化的静态网页爬取引擎。
 
 工作流程：URL 规范化 → Host 分组队列 → 默认 curl 安全传输 → Robots / 域名调度 → HTML 提取 → Pipeline → 增量持久化与重启恢复。
 
-当前版本 **0.2.2**。参见[最新复审整改说明](docs/review-0.2.2.md)及[测试数据和实际结果](evidence/2026-11-13/README.md)。
+当前版本 **0.2.3**。参见[最新完善说明](docs/review-0.2.3.md)及[测试数据和实际结果](evidence/2026-11-13-0.2.3/README.md)。
 [支持范围与发布待办](docs/compatibility.md) 明确列出限制。
 
 ## 快速开始
@@ -30,6 +30,7 @@ moon run cmd/mooncrawler --target native -- resume data/job
 
 运行时在另一终端执行 `pause data/job`，停止领取新任务并等待在途请求结束、保存检查点。
 恢复使用保存的配置。`stats` 与 `status` 显示最近检查点计数；导出拒绝覆盖已有文件。
+导出使用按需页面读取器，不会先恢复全部正文；导出期间持有作业锁，应先暂停或停止爬虫。
 
 离线扩展示例与本地真实 HTTP 验证：
 

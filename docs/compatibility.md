@@ -1,12 +1,12 @@
 # Supported scope and remaining work
 
-This is a working 0.2.2 static crawler, not a completed 1.0 certification.
+This is a working 0.2.3 static crawler, not a completed 1.0 certification.
 P0/P1 modules have executable implementations; broader acceptance, portability
 and performance verification remain release gates.
 
 | Area | Implemented profile / limit |
 | --- | --- |
-| Runtime | native; Windows focused evidence recorded; Ubuntu focused CI configured; full three-platform certification pending |
+| Runtime | native; focused CI targets Windows, Ubuntu and macOS with separate artifacts; full certification remains pending |
 | URL | ASCII HTTP(S), punycode IDNs, IPv4/DNS, 8192 code units; query retained by default |
 | Normalization | host/scheme case, default ports, fragments, dot segments, unreserved escapes; preserves query order and reserved escapes |
 | Network | public IPv4, ports 80/443; private, metadata, loopback, special-use and ambiguous numeric forms blocked |
@@ -21,7 +21,7 @@ and performance verification remain release gates.
 | Frontier | default 1000 discovered tasks total, including terminal states; rejects excess discovery as backpressure |
 | Scheduler | worker and host slots, request-start spacing including Robots/redirects; host limits enable multi-site progress |
 | Storage | locked trusted directory; incremental batches and segmented checkpoints; 16 MiB per record; aggregate above 64 MiB tested |
-| Export | CLI writes one JSONL page at a time; snapshot recovery and Engine still retain pages in memory; failed output may be partial |
+| Export | CLI scans bounded records into a latest-page catalog, then writes bodies one record at a time under a job lock; Engine resume still retains pages; failed output may be partial |
 | Resume | successes retained, interrupted workers retry; host cooldown/Robots cache restart from configuration |
 | Cookie/proxy | disabled by default; custom adapters can implement explicit sessions with equivalent safety |
 | Monitoring | persisted states, attempts, errors, save time; CLI page/state counters; no metrics server/tracing exporter |
@@ -36,14 +36,14 @@ address sets; SystemResolver still exposes only the native selected IPv4 address
 
 ## Deferred release gates
 
-- Multi-OS HTTPS certificate-failure/rebinding fixtures.
+- Complete platform/TLS certification, system-resolver/public-DNS cache coverage.
 - GBK decoder, optional cookie sessions and proxy adapters.
 - Metrics/logging exporters, coverage-guided HTML fuzzing and real-page throughput.
 - Directory metadata power-loss durability and additional platform crash fixtures.
 - Mooncakes publication and signed release artifacts.
 
-See [0.2.2 evidence](../evidence/2026-11-13/README.md) for selected tests,
-forced process termination and per-fixture parser working-set measurements.
+See [0.2.3 evidence](../evidence/2026-11-13-0.2.3/README.md) for selected tests,
+eleven forced-termination stages, UDP DNS fixtures and per-process memory comparisons.
 
 P2: XML Sitemap crawling (declarations already extracted), conditional/incremental
 recrawl, PDF, external browser execution and distributed workers.

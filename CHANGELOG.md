@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.3
+
+- Add a locked PageReader with validated bounded catalog scans and latest-page locations.
+- Use catalog-based streaming CLI export without restoring all page bodies; share recovery validation.
+- Reject duplicate checkpoint identities, noncanonical journal names and reserved export filenames.
+- Test TTL-zero UDP DNS answer changes across a real HTTP redirect, mixed answers and invalid responses.
+- Extend forced-termination coverage to eleven partial-write/publication/cleanup stages.
+- Measure full recovery versus catalog export on the same 65 MiB synthetic checkpoint.
+- Run automatic focused checks on Windows, Ubuntu and macOS with separate evidence artifacts.
+
 ## 0.2.2
 
 - Retry temporary Robots outages with persisted bounded cooldowns, separately from rule denies.
