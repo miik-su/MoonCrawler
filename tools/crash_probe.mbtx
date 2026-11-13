@@ -10,7 +10,7 @@ async fn main {
   build.check()
   let program = "_build/native/debug/build/cmd/recovery_probe/recovery_probe.exe"
   let rows : Array[Json] = []
-  for stage in ["event_staged", "event_published", "checkpoint_staged", "checkpoint_published", "cleanup_started"] {
+  for stage in ["event_partial", "event_staged", "event_published", "shard_partial", "shard_staged", "shard_published", "checkpoint_partial", "checkpoint_staged", "checkpoint_published", "cleanup_started", "cleanup_removed"] {
     let dir = @fs.tmpdir(prefix="crawler-kill-")
     defer @fs.rmdir(dir, recursive=true)
     @shell.Cmd(program, ["init", dir]).run()

@@ -13,7 +13,7 @@ async fn main {
     let store = @storage.FileStore::open(dir)
     defer store.close()
     let saved = store.load().unwrap()
-    let committed = args[3] != "event_staged"
+    let committed = args[3] != "event_staged" && args[3] != "event_partial"
     assert_eq(saved.pages.length(), if committed { 1 } else { 0 })
     assert_eq(saved.tasks.length(), if committed { 1 } else { 0 })
     if committed {
