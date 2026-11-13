@@ -27,6 +27,7 @@ pub fn DnsError::to_repr(Self) -> @debug.Repr
 pub(all) struct SystemResolver {
 }
 pub async fn SystemResolver::resolve(Self, String, Int32) -> @socket.Addr raise DnsError
+pub async fn SystemResolver::resolve_all(Self, String, Int32) -> Array[@socket.Addr] raise DnsError
 pub impl Resolver for SystemResolver
 
 // Type aliases
@@ -34,4 +35,5 @@ pub impl Resolver for SystemResolver
 // Traits
 pub(open) trait Resolver {
   async fn resolve(Self, String, Int32) -> @socket.Addr raise DnsError
+  async fn resolve_all(Self, String, Int32) -> Array[@socket.Addr] raise DnsError = _
 }

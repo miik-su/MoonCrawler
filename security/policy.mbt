@@ -87,14 +87,21 @@ pub async fn resolve_checked(
   resolver~ : &Resolver = SystemResolver::{ },
 ) -> String {
   check_url(url, config)
-  let addr = resolver.resolve(url.host, url.port) catch {
+  let addresses = resolver.resolve_all(url.host, url.port) catch {
     Temporary => raise @core.Network("temporary DNS failure")
     NotFound => raise @core.Protocol("DNS name does not exist")
     Unknown => raise @core.DnsUnknown
   }
-  let ip = addr.to_string().split(":").to_array()[0].to_owned()
-  if !public_ipv4(ip, allow_loopback=config.allow_loopback) {
-    raise @core.Security("resolved destination is not public IPv4")
+  if addresses.is_empty() || addresses.length() > 64 {
+    raise @core.Security("empty or oversized DNS address set")
   }
-  ip
+  let ips = addresses.map(addr => {
+    addr.to_string().split(":").to_array()[0].to_owned()
+  })
+  for ip in ips {
+    if !public_ipv4(ip, allow_loopback=config.allow_loopback) {
+      raise @core.Security("resolved destination is not public IPv4")
+    }
+  }
+  ips[0]
 }

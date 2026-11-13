@@ -3,6 +3,7 @@ package "miik-su/mooncrawler/fetcher"
 
 import {
   "miik-su/mooncrawler/core",
+  "miik-su/mooncrawler/security",
   "miik-su/mooncrawler/url",
 }
 
@@ -16,7 +17,7 @@ pub(all) struct CurlFetcher {
   program : String
 }
 pub async fn CurlFetcher::fetch(Self, @url.Url, @core.Config) -> @core.Response
-pub async fn CurlFetcher::request(Self, @url.Url, @core.Config, verb? : String, headers? : Map[String, String]) -> @core.Response
+pub async fn CurlFetcher::request(Self, @url.Url, @core.Config, verb? : String, headers? : Map[String, String], resolver? : &@security.Resolver) -> @core.Response
 pub impl UnsafeFetcher for CurlFetcher
 
 // Type aliases

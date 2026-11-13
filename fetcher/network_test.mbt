@@ -8,7 +8,10 @@ async test "real curl transport sends headers and leaves redirects to engine" {
         let (conn, _) = server.accept()
         defer conn.close()
         let request = conn.read_request()
-        assert_eq(request.headers.get("User-Agent"), Some("MoonCrawler/0.1"))
+        assert_eq(
+          request.headers.get("User-Agent"),
+          Some(@core.Config::default().user_agent),
+        )
         assert_eq(request.path, "/start?x=1")
         conn.skip_request_body()
         conn.send_response(302, "Found", extra_headers={

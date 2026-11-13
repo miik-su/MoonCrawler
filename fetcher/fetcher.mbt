@@ -26,13 +26,14 @@ pub async fn CurlFetcher::request(
   config : @core.Config,
   verb~ : String = "GET",
   headers~ : Map[String, String] = {},
+  resolver~ : &@security.Resolver = @security.SystemResolver::{ },
 ) -> @core.Response {
   config.validate()
   guard verb == "GET" || verb == "HEAD" else {
     raise @core.Invalid("only GET and HEAD supported")
   }
   @async.with_timeout(config.timeout_ms, () => {
-    let ip = @security.resolve_checked(url, config)
+    let ip = @security.resolve_checked(url, config, resolver~)
     let seconds = (config.timeout_ms.to_double() / 1000.0).to_string()
     let args = [
       "--disable",
