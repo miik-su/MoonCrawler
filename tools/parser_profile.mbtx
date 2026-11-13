@@ -1,0 +1,43 @@
+----
+import {
+  "moonbitlang/async@0.22.5", "moonbitlang/async@0.22.5/fs", "moonbitlang/async@0.22.5/shell",
+  "moonbitlang/async@0.22.5/process", "moonbitlang/core/json", "moonbitlang/core/string",
+}
+----
+async fn main {
+  let build = @shell.Cmd("moon", ["build", "cmd/parser_probe", "--target", "native", "--debug"]).output()
+  build.check()
+  let rows : Array[Json] = []
+  for fixture in ["nested", "malformed", "long_attribute", "entities"] {
+    let dir = @fs.tmpdir(prefix="crawler-parser-profile-")
+    defer @fs.rmdir(dir, recursive=true)
+    let row : Json = @async.with_timeout(30000, () => @async.with_task_group(group => {
+      let child = @process.spawn(group, "_build/native/debug/build/cmd/parser_probe/parser_probe.exe", [fixture, dir], no_wait=true, no_console_window=true, cancel_handler=@process.hard_cancel())
+      while !@fs.exists(dir + "/ready.json") { @async.sleep(10) }
+      let data = @json.parse(@fs.read_file(dir + "/ready.json").text())
+      let (bytes, measurement) : (Int64, String) = match @async.platform {
+        Windows => {
+          let out = @shell.Cmd("powershell", ["-NoProfile", "-Command", "(Get-Process -Id " + child.pid.to_string() + ").PeakWorkingSet64"]).output()
+          out.check()
+          (@string.parse_int64(out.stdout().trim()), "Windows PeakWorkingSet64")
+        }
+        Linux => {
+          let status = @fs.read_file("/proc/" + child.pid.to_string() + "/status").text()
+          let line = status.split("\n").filter(line => line.has_prefix("VmHWM:")).to_array()[0].to_owned()
+          let number = line.split(":").to_array()[1].trim().to_owned().split(" ").to_array()[0]
+          (@string.parse_int64(number) * 1024L, "Linux VmHWM")
+        }
+        MacOS => {
+          let out = @shell.Cmd("ps", ["-o", "rss=", "-p", child.pid.to_string()]).output()
+          out.check()
+          (@string.parse_int64(out.stdout().trim()) * 1024L, "macOS sampled RSS (not peak)")
+        }
+      }
+      @fs.write_file(dir + "/release", "done")
+      assert_eq(child.wait(), 0)
+      {"probe": data, "memory_bytes": @json.to_json(bytes), "memory_method": @json.to_json(measurement), "includes_runtime_and_input": true}
+    }))
+    rows.push(row)
+  }
+  println(@json.to_json(rows).stringify(indent=2))
+}
