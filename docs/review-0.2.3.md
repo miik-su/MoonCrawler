@@ -56,6 +56,11 @@ separate platform artifacts, including failure logs. Configuration alone is not 
 passing result: consult the actual Actions run. Full tests remain manual and disabled
 unless explicitly selected. This continuation did not request a full suite.
 
+The initial macos-14 job was cancelled before receiving a runner. GitHub retired
+that image on 2026-11-02; both workflows now select macos-15 (Arm64). See the
+[official retirement notice](https://github.blog/changelog/2026-10-01-github-actions-macos-14-runner-image-retirement/).
+Cancelled pre-run jobs are not counted as tested platforms.
+
 ## Remaining boundaries
 
 - Engine-wide lazy body retention/streaming resume is still future work.
