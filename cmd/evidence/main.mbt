@@ -47,5 +47,37 @@ fn main raise {
     "network_requests": 0,
     "cpu_time_measured": false,
   }
-  println(result.stringify(indent=2))
+  let many_start = @env.now()
+  let many = @frontier.Frontier::new(config)
+  for i in 0..<10000 {
+    many.enqueue(
+      {
+        url: @url.parse("https://h\{i}.example/"),
+        depth: 0,
+        priority: i,
+        source: "",
+      },
+      0L,
+    )
+    |> ignore
+  }
+  let one = many.claim(0L, eligible=r => r.url.host == "h0.example").unwrap()
+  let first_checks = many.candidate_checks()
+  for _ in 0..<10 {
+    many.claim(0L, eligible=_ => false) |> ignore
+  }
+  let hosts : Json = {
+    "model": "10k-distinct-hosts",
+    "hosts": 10000,
+    "selected_host": @json.to_json(one.request.url.host),
+    "initial_candidate_checks": @json.to_json(first_checks),
+    "blocked_polls": 10,
+    "blocked_candidate_checks": @json.to_json(
+      many.candidate_checks() - first_checks,
+    ),
+    "wall_elapsed_ms": @json.to_json(@env.now() - many_start),
+    "complexity": "linear in nonempty hosts per claim",
+    "network_requests": 0,
+  }
+  println(@json.to_json([result, hosts]).stringify(indent=2))
 }
