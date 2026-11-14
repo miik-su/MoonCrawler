@@ -16,7 +16,7 @@
 | MoonCrawl | [guangting0905/mooncrawl](https://github.com/guangting0905/mooncrawl)，仓库声明 Apache-2.0 | 本次选题查重的外部对照，不是移植来源；对照版本固定在 peer-comparison 文档 |
 | pkg.generated.mbti | `moon info --target native` 生成 | API 摘要，不手工维护；CI 检查重新生成的差异 |
 | 测试 HTML、URL、DNS 报文及任务模型 | 本仓库静态/合成夹具 | 使用 example 域名和本地服务；不包含从第三方网站采集的真实用户数据集或 AI 权重 |
-| TLS 失败夹具 | 运行时由 openssl 在临时目录生成测试证书/密钥 | 不提交静态私钥；结束时清理临时目录，产物记录测试结果而非密钥 |
+| TLS 失败夹具 | openssl 在临时目录生成证书/密钥并启动 s_server | 避免调用上游标记 internal 的 TLS 服务器 API；校验 curl 的证书验证错误码 60；不提交静态私钥，结束后清理临时目录 |
 | CI 结果 | 对应 Actions 作业的原始产物 | 保存源码 SHA、命令、退出码和 ZIP 摘要；不是全面安全认证 |
 
 ## AI 辅助与维护责任
