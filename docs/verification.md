@@ -11,8 +11,9 @@ historical performance evidence is retained below without relabelling its source
 The manual release workflow still supports explicitly requested broader validation.
 The Unix certificate fixture uses an openssl subprocess and requires curl exit 60;
 it no longer calls an upstream TLS-server API marked internal. Initial strict CI
-at `79e599f` exposed that fixture dependency; see the subsequent recorded result
-before treating all platforms as passing. Windows has no TLS-server fixture claim.
+at `79e599f` exposed that fixture dependency. The corrected `aceb4f2` passed on
+all three platforms; [raw results and artifact hashes](../evidence/2026-11-14-readiness/platforms/README.md)
+preserve the exact source revision. Windows has no TLS-server fixture claim.
 
 ## Runtime baseline: 0.2.3 (2026-11-13)
 

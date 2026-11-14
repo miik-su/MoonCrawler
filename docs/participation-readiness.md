@@ -11,7 +11,7 @@
 | 解释本期实质工作 | [贡献索引](monthly-contributions.md)，按成果关联代表性提交、测试和原始结果 |
 | 参考与材料来源 | [第三方声明](../THIRD_PARTY_NOTICES.md)、[来源清单](source-provenance.md)、[依赖许可证据](dependency-licenses.md) |
 | 可复现检查 | 工具链、README、离线示例、关键测试及 [历史三平台证据](../evidence/2026-11-13-0.2.3/platforms/README.md) |
-| 本轮验证 | 记录在 [2026-11-14 准备工作报告](../evidence/2026-11-14-readiness/README.md)，不覆盖旧版测量数据 |
+| 本轮验证 | [本地准备工作报告](../evidence/2026-11-14-readiness/README.md)与[三平台原始结果](../evidence/2026-11-14-readiness/platforms/README.md)；均通过关键检查，不覆盖旧版测量数据 |
 | 发布前本地准备 | 显式 README 元数据、包文件过滤、`tools/package_check.mbtx` 的包内检查与离线示例；未执行发布 |
 
 ## 需要维护者本人确认

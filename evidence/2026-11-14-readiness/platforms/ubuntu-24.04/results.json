@@ -1,0 +1,81 @@
+{
+  "source_revision": "aceb4f27b997cb9295666d94946d88cbd2f5afdb",
+  "source_dirty_at_start": false,
+  "platform": "Linux",
+  "toolchain": "moon 0.1.20261023 (3778465 2026-10-23) ~/.moon/bin/moon\nmoonc v0.10.17+d971670cd (2026-10-23) ~/.moon/bin/moonc\nmoonrun 0.1.20261023 (3778465 2026-10-23) ~/.moon/bin/moonrun\n\nFeature flags enabled: rr_moon_mod,rr_moon_pkg\n",
+  "full_suite": false,
+  "published": false,
+  "registry_install_tested": false,
+  "checks": [
+    {
+      "name": "check",
+      "command": [
+        "moon",
+        "check",
+        "--target",
+        "native",
+        "--deny-warn"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "440"
+    },
+    {
+      "name": "format",
+      "command": [
+        "moon",
+        "fmt",
+        "--check"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "7"
+    },
+    {
+      "name": "interfaces",
+      "command": [
+        "moon",
+        "info",
+        "--target",
+        "native"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "658"
+    },
+    {
+      "name": "interface-diff",
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "--",
+        "*.mbti"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "4"
+    },
+    {
+      "name": "fetcher",
+      "command": [
+        "moon",
+        "test",
+        "fetcher/attack_test.mbt",
+        "fetcher/network_test.mbt",
+        "fetcher/headers_test.mbt",
+        "--target",
+        "native",
+        "--deny-warn"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "2076"
+    },
+    {
+      "name": "package",
+      "command": [
+        "moon",
+        "run",
+        "tools/package_check.mbtx"
+      ],
+      "exit_code": 0,
+      "wall_elapsed_ms": "5195"
+    }
+  ]
+}
