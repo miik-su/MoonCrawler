@@ -18,11 +18,16 @@ The external curl license is published at https://curl.se/docs/copyright.html .
 
 Architectural references (concepts only):
 
-- [Scrapy scheduler](https://github.com/scrapy/scrapy/blob/master/scrapy/core/scheduler.py): separate scheduler, duplicate filter and persistence responsibilities.
-- [Scrapy middleware](https://github.com/scrapy/scrapy/blob/master/docs/topics/downloader-middleware.rst): separate retry, redirect and Robots policies.
+- Scrapy — [BSD-3-Clause license](https://github.com/scrapy/scrapy/blob/master/LICENSE).
+  [Scheduler reference](https://github.com/scrapy/scrapy/blob/master/scrapy/core/scheduler.py):
+  separate scheduler, duplicate filter and persistence responsibilities.
+  [Middleware reference](https://github.com/scrapy/scrapy/blob/master/docs/topics/downloader-middleware.rst):
+  separate retry, redirect and Robots policies. Conceptual reference only; no Python source ported.
 - [RFC 9309](https://www.rfc-editor.org/rfc/rfc9309.html): Robots group selection, rules and caching; see our documented profile.
 - [MoonBit HTML5 parser](https://github.com/moonbit-community/html5-mbt): reused through an extraction adapter.
 
 See [compatibility](docs/compatibility.md) for verified scope.
+See [material provenance](docs/source-provenance.md) for generated interfaces,
+AI assistance, synthetic fixtures, dependency code and CI evidence boundaries.
 
 No AI model weights are included. Queue models refer to synthetic test workloads.
