@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — 2026-11-14 preparation
+
+- Document dated peer comparison, independent contributions, source/fixture provenance and remaining gates.
+- Record Scrapy BSD-3-Clause reference scope and clarify dependency license evidence.
+- Add explicit README metadata and filter non-library artifacts from local packages.
+- Verify extracted package source and offline example without registry publication.
+- Handle intentionally retained Unix fixture imports on Windows without disabling warning checks.
+- Capture focused readiness evidence; Mooncakes publication remains deferred.
+
 ## 0.2.3
 
 - Add a locked PageReader with validated bounded catalog scans and latest-page locations.

@@ -1,11 +1,11 @@
 # MoonCrawler
 
-MoonBit 原生、模块化的静态网页爬取引擎。
+面向安全访问、可靠恢复与受限资源导出的 MoonBit 静态网页抓取引擎。
 
 工作流程：URL 规范化 → Host 分组队列 → 默认 curl 安全传输 → Robots / 域名调度 → HTML 提取 → Pipeline → 增量持久化与重启恢复。
 
-当前版本 **0.2.3**。参见[最新完善说明](docs/review-0.2.3.md)及[测试数据和实际结果](evidence/2026-11-13-0.2.3/README.md)。
-[Windows / Ubuntu / macOS 定向 CI 结果](evidence/2026-11-13-0.2.3/platforms/README.md)已保存原始日志和内存数据。
+当前版本 **0.2.3**。参见[最新完善说明](https://github.com/miik-su/MoonCrawler/blob/main/docs/review-0.2.3.md)及[测试数据和实际结果](https://github.com/miik-su/MoonCrawler/blob/main/evidence/2026-11-13-0.2.3/README.md)。
+[Windows / Ubuntu / macOS 定向 CI 结果](https://github.com/miik-su/MoonCrawler/blob/main/evidence/2026-11-13-0.2.3/platforms/README.md)已保存原始日志和内存数据。
 [支持范围与发布待办](docs/compatibility.md) 明确列出限制。
 
 ## 快速开始
@@ -42,6 +42,11 @@ moon run tools/cli_smoke.mbtx
 
 ## 模块
 
+项目与已有爬虫框架共享 URL、Robots、调度和 HTML 提取等基础能力。
+本项目的独立成果集中在默认网络边界、增量持久化、故障恢复验证和按需页面导出；
+详见[同类项目对照](https://github.com/miik-su/MoonCrawler/blob/main/docs/peer-comparison.md)。
+当前没有 CSS/XPath、CSV、浏览器渲染或分布式执行能力。
+
 | 包 | 能力 |
 | --- | --- |
 | `url` / `core` | URL 规范化、相对链接、过滤、模型与配置 |
@@ -62,8 +67,13 @@ Frontier 的独立 fencing API 不表示 Engine 提供运行时抢占、续租�
 - [架构与扩展接口](docs/architecture.md)
 - [配置字段](docs/configuration.md)
 - [兼容性与后续计划](docs/compatibility.md)
-- [关键验证记录](docs/verification.md)
+- [关键验证记录](https://github.com/miik-su/MoonCrawler/blob/main/docs/verification.md)
 - [依赖、Scrapy 与 RFC 参考来源](THIRD_PARTY_NOTICES.md)
+- [代码与验证材料来源](docs/source-provenance.md)
+- [本期实质贡献索引](https://github.com/miik-su/MoonCrawler/blob/main/docs/monthly-contributions.md)
+- [工程与材料准备状态](https://github.com/miik-su/MoonCrawler/blob/main/docs/participation-readiness.md)
 
-测试范围、命令和原始结果见[验证记录](docs/verification.md)。API 精确签名见各包的 `pkg.generated.mbti`。
+测试范围、命令和原始结果见[验证记录](https://github.com/miik-su/MoonCrawler/blob/main/docs/verification.md)。API 精确签名见各包的 `pkg.generated.mbti`。
+当前按维护者要求暂不发布 Mooncakes；可以从源码运行。历史证据、验证脚本及探针保存在 GitHub，
+本地包清单将它们排除；打包后源码检查和离线示例可用 `moon run tools/package_check.mbtx` 验证。
 Apache-2.0；依赖按各自许可证使用。

@@ -16,3 +16,13 @@ actual license evidence and an update to THIRD_PARTY_NOTICES.md. No curl binary 
 redistributed by this repository.
 
 Report security defects through SECURITY.md before public exploit discussion.
+
+Before claiming ecosystem novelty, update docs/peer-comparison.md against a dated,
+identified external baseline. Keep the current-month contribution index tied to
+actual commits and logs; documentation-only work is not new runtime functionality.
+Record AI assistance, synthetic fixtures and generated files in docs/source-provenance.md.
+
+For local package preparation run `moon run tools/package_check.mbtx`. It packages,
+checks allowed contents, verifies extracted source and runs an offline example;
+it never publishes or changes registry authentication. Registry publication is
+currently paused by the maintainer. Full test runs remain an explicit separate task.

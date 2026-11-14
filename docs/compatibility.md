@@ -29,7 +29,7 @@ and performance verification remain release gates.
 The upstream HTML parser has no preallocation/node budget or cancellation hook.
 Input is bounded, but pathological HTML needs further fuzzing and profiling.
 Jobs remain in memory during execution/recovery. The 100K task ceiling is a bound,
-not a measured throughput or memory guarantee. See [audit status](audit-upgrade.md).
+not a measured throughput or memory guarantee. See [audit status](https://github.com/miik-su/MoonCrawler/blob/main/docs/audit-upgrade.md).
 The 10K distinct-host model confirms O(nonempty hosts) candidate scanning per claim;
 it does not establish 100K real-page throughput. Resolver adapters can return complete
 address sets; SystemResolver still exposes only the native selected IPv4 address.
@@ -42,7 +42,7 @@ address sets; SystemResolver still exposes only the native selected IPv4 address
 - Directory metadata power-loss durability and additional platform crash fixtures.
 - Mooncakes publication and signed release artifacts.
 
-See [0.2.3 evidence](../evidence/2026-11-13-0.2.3/README.md) for selected tests,
+See [0.2.3 evidence](https://github.com/miik-su/MoonCrawler/blob/main/evidence/2026-11-13-0.2.3/README.md) for selected tests,
 eleven forced-termination stages, UDP DNS fixtures and per-process memory comparisons.
 
 P2: XML Sitemap crawling (declarations already extracted), conditional/incremental
