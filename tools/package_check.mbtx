@@ -1,0 +1,37 @@
+----
+import {
+  "moonbitlang/async@0.22.5", "moonbitlang/async@0.22.5/fs", "moonbitlang/async@0.22.5/shell",
+  "moonbitlang/core/json",
+}
+----
+async fn command(args : Array[String], cwd~ : String = ".") -> String {
+  let output = @shell.Cmd(args[0], args[1:].to_owned(), cwd~).output(timeout_ms=120000, max_output_bytes=8388608)
+  if output.exit_code() != 0 { println(output.stdout() + output.stderr()); output.check() }
+  output.stdout()
+}
+async fn main {
+  let root = @fs.realpath(".")
+  ignore(command(["moon", "package"]))
+  let archive = root + "/_build/publish/miik-su-mooncrawler-0.2.3.zip"
+  let list = if @async.platform is Windows { ["tar", "-tf", archive] } else { ["unzip", "-Z1", archive] }
+  let entries = command(list).split("\n").map(p => p.trim().to_owned().replace_all(old="\\", new="/")).filter(p => !p.is_empty()).to_array()
+  let required = ["moon.mod", "README.md", "LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md", "core/models.mbt", "engine/engine.mbt", "storage/reader.mbt", "examples/offline/main.mbt", "cmd/mooncrawler/main.mbt", "docs/source-provenance.md"]
+  for path in required { assert_true(entries.contains(path)) }
+  let excluded = [".git/", ".github/", "_build/", ".mooncakes/", "evidence/", "tools/", "cmd/evidence/", "cmd/parser_probe/", "cmd/recovery_probe/", "cmd/storage_probe/", "fuzz/"]
+  for path in entries {
+    assert_false(path.has_prefix("/") || path.split("/").any(part => part == "..") || path.contains(":"))
+    assert_false(excluded.any(prefix => path.has_prefix(prefix)))
+    assert_false([".pem", ".key", ".exe", ".zip", ".tmp"].any(suffix => path.has_suffix(suffix)))
+  }
+  let directory = @fs.tmpdir(prefix="crawler-package-check-")
+  defer @fs.rmdir(directory, recursive=true)
+  let unpack = if @async.platform is Windows { ["tar", "-xf", archive, "-C", directory] } else { ["unzip", "-q", archive, "-d", directory] }
+  ignore(command(unpack))
+  ignore(command(["moon", "check", "--target", "native", "--deny-warn"], cwd=directory))
+  let example = command(["moon", "run", "examples/offline", "--target", "native", "--quiet"], cwd=directory)
+  let pages = example.split("\n").filter(p => p.has_prefix("{")).to_array()
+  assert_eq(pages.length(), 2)
+  for page in pages { @json.parse(page.to_owned()) |> ignore }
+  let report : Json = {"archive": "_build/publish/miik-su-mooncrawler-0.2.3.zip", "packaged_files": @json.to_json(entries.length()), "required_entries_present": true, "excluded_entries_absent": true, "extracted_native_check": "passed with deny-warn", "extracted_offline_pages": 2, "published": false, "registry_install_tested": false, "files": @json.to_json(entries)}
+  println(report.stringify(indent=2))
+}
