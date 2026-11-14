@@ -109,3 +109,12 @@ async test "curl refuses an untrusted TLS certificate" {
     })
   })
 }
+
+///|
+// The pinned toolchain cannot condition imports by OS. The Unix-only fixture
+// intentionally retains these imports; type references document that fact on Windows.
+#cfg(platform="windows")
+let _unix_fixture_imports : Unit = {
+  ignore((_ : @tls.Tls?) => ())
+  ignore((_ : @fs.File?) => ())
+}
