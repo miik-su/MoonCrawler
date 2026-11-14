@@ -1,6 +1,16 @@
 # Focused verification
 
-## Latest: 0.2.3 (2026-11-13)
+## Current preparation checks (2026-11-14)
+
+See [readiness results](../evidence/2026-11-14-readiness/README.md).
+Reproduce with `moon run tools/readiness_evidence.mbtx`: Native warning-denial,
+format/interface checks, the affected fetcher files and local package extraction
+with an offline example. It never publishes or changes registry authentication.
+Automatic focused CI records these checks independently on its three platforms;
+historical performance evidence is retained below without relabelling its source.
+The manual release workflow still supports explicitly requested broader validation.
+
+## Runtime baseline: 0.2.3 (2026-11-13)
 
 See [new evidence](../evidence/2026-11-13-0.2.3/README.md) for ten focused groups,
 actual UDP DNS A records with TTL=0 and a real curl/HTTP redirect, eleven forced

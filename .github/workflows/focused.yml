@@ -16,23 +16,23 @@ jobs:
       - if: runner.os == 'Linux'
         run: sudo apt-get update
       - if: runner.os == 'Linux'
-        run: sudo apt-get install -y libssl-dev curl
+        run: sudo apt-get install -y libssl-dev curl unzip
       - run: moon update
-      - run: moon check --target native --warn-list -79
+      - run: moon check --target native --deny-warn
       - run: moon fmt --check
       - run: moon info --target native
       - run: git diff --exit-code -- '*.mbti'
       - name: Selected queue and policy checks
         run: moon test core/scope_test.mbt core/migration_test.mbt frontier/redirect_test.mbt robots/capacity_test.mbt security/boundary_test.mbt fuzz/corpus_test.mbt --target native
       - name: Selected integration and failure checks
-        run: moon test engine/policy_test.mbt engine/fairness_test.mbt engine/robots_limits_test.mbt engine/failure_test.mbt fetcher/headers_test.mbt fetcher/attack_test.mbt storage/journal_test.mbt storage/file_safety_test.mbt --target native
+        run: moon test engine/policy_test.mbt engine/fairness_test.mbt engine/robots_limits_test.mbt engine/failure_test.mbt storage/journal_test.mbt storage/file_safety_test.mbt --target native
       - name: Real CLI smoke
         run: moon run tools/cli_smoke.mbtx
-      - name: Capture reproducible test evidence
+      - name: Capture focused readiness and package evidence without publication
         if: always()
-        run: moon run tools/publish_evidence.mbtx
+        run: moon run tools/readiness_evidence.mbtx
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: focused-evidence-${{ matrix.os }}
-          path: evidence/2026-11-13-0.2.3/
+          path: evidence/2026-11-14-readiness/

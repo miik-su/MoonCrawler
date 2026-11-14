@@ -1,0 +1,54 @@
+----
+import {
+  "moonbitlang/async@0.22.5", "moonbitlang/async@0.22.5/fs", "moonbitlang/async@0.22.5/shell",
+  "moonbitlang/core/env", "moonbitlang/core/json",
+}
+----
+async fn run(args : Array[String]) -> (Int, String) {
+  let out = @shell.Cmd(args[0], args[1:].to_owned()).output(timeout_ms=180000, max_output_bytes=8388608)
+  let log = (out.stdout() + out.stderr()).replace_all(old="C:\\Users\\MIKE", new="<user>").replace_all(old="C:/Users/MIKE", new="<user>")
+  (out.exit_code(), log)
+}
+async fn git(args : Array[String]) -> String {
+  let out = @shell.Cmd("git", args).output()
+  out.check()
+  out.stdout().trim().to_owned()
+}
+async fn main {
+  let source = git(["rev-parse", "HEAD"])
+  let dirty = !git(["status", "--porcelain", "--", ".", ":(exclude)evidence"]).is_empty()
+  let dir = "evidence/2026-11-14-readiness"
+  @fs.mkdir(dir, recursive=true, allow_exist=true)
+  let jobs : Array[(String, Array[String])] = [
+    ("check", ["moon", "check", "--target", "native", "--deny-warn"]),
+    ("format", ["moon", "fmt", "--check"]),
+    ("interfaces", ["moon", "info", "--target", "native"]),
+    ("interface-diff", ["git", "diff", "--exit-code", "--", "*.mbti"]),
+    ("fetcher", ["moon", "test", "fetcher/attack_test.mbt", "fetcher/network_test.mbt", "fetcher/headers_test.mbt", "--target", "native", "--deny-warn"]),
+    ("package", ["moon", "run", "tools/package_check.mbtx"]),
+  ]
+  let rows : Array[Json] = []
+  let table = StringBuilder()
+  table.write_string("# Readiness verification — 2026-11-14\n\nSource: `" + source + "`.\nScope: metadata, source documentation, platform-test warning handling and local package preparation.\nMooncakes publication: **not attempted, explicitly deferred**. Full suite: **not run**.\n\n| Check | Exit | Wall ms | Raw output |\n| --- | ---: | ---: | --- |\n")
+  let mut failed = false
+  for (name, args) in jobs {
+    let start = @env.now()
+    let (code, log) = run(args)
+    let elapsed = @env.now() - start
+    if code != 0 { failed = true }
+    @fs.write_file(dir + "/" + name + ".log", log)
+    if name == "package" && code == 0 {
+      let data = @json.parse(log)
+      @fs.write_file(dir + "/package.json", data.stringify(indent=2))
+    }
+    rows.push({"name": @json.to_json(name), "command": @json.to_json(args), "exit_code": @json.to_json(code), "wall_elapsed_ms": @json.to_json(elapsed)})
+    table.write_string("| " + name + " | " + code.to_string() + " | " + elapsed.to_string() + " | [log](" + name + ".log) |\n")
+  }
+  let platform = match @async.platform { Windows => "Windows"; Linux => "Linux"; MacOS => "macOS" }
+  let report : Json = {"source_revision": @json.to_json(source), "source_dirty_at_start": @json.to_json(dirty), "platform": @json.to_json(platform), "toolchain": @json.to_json(run(["moon", "version", "--all"]).1), "full_suite": false, "published": false, "registry_install_tested": false, "checks": @json.to_json(rows)}
+  @fs.write_file(dir + "/results.json", report.stringify(indent=2))
+  table.write_string("\n[Structured results](results.json) · [Package file manifest and extracted checks](package.json).\nThe extracted package is checked with deny-warn and its offline example produces two JSONL pages. This is a local archive check, not a registry installation or publication test. Windows excludes the Unix TLS-server case; Unix CI runs it. Compiler warn denial does not suppress unrelated C compiler diagnostics from upstream dependencies.\n\nThe 0.2.3 performance and three-platform runtime evidence remain in their original dated directory and source revision. This run does not repeat the 65 MiB/100K models or certify all tests, all security boundaries or power-loss durability.\n")
+  @fs.write_file(dir + "/README.md", table.to_string())
+  if failed { fail("readiness checks failed; inspect recorded logs") }
+  println("Readiness evidence recorded for " + source)
+}
