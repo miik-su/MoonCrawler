@@ -16,7 +16,7 @@ and performance verification remain release gates.
 | Robots | product-token groups, merged groups, Allow/Disallow, wildcard/end anchor, UTF-8 octets, Sitemap declarations, origin TTL cache |
 | Robots failures | 4xx except 429 allow; network/429/5xx fail closed with bounded task retries; cooldown >=5 minutes and honors Retry-After up to 24h; valid rule denies are terminal |
 | Robots extensions | Crawl-delay ignored; configure host delay. Percent-encoded wildcard matching is conservative |
-| HTML | upstream HTML5 DOM; title, text, metadata, canonical/base, images/links; rel tokens use ASCII whitespace and case folding; no JS execution or CSS selector API |
+| HTML | Exact `text/html` or `application/xhtml+xml` media type (case-insensitive, parameters excluded); both use the upstream HTML5 DOM, with no XML validation, JS execution or CSS selector API |
 | Resource bounds | body default 2 MiB; parser 512K UTF-16 units, 4096 '<' preflight, 100K nodes after construction, 10K links/images each; retained page/metadata serialized defaults 128/16 MiB, not RSS limits |
 | Frontier | default 1000 discovered tasks total, including terminal states; rejects excess discovery as backpressure |
 | Scheduler | worker and host slots, request-start spacing including Robots/redirects; host limits enable multi-site progress |

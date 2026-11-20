@@ -14,5 +14,12 @@ The maintainer will triage, reproduce, prepare a fix and coordinate disclosure;
 there is no guaranteed response SLA or bug bounty. Confirmed issues may receive
 GitHub security advisories after coordinated disclosure.
 
-See [supported boundaries](docs/audit-upgrade.md). Custom UnsafeFetcher, Parser,
-Processor and Storage implementations are trusted code, not sandboxed plugins.
+Triage prioritizes violations of connection policy, unauthorized data access and
+unbounded resource use. Maintenance records should include the scope, a targeted
+regression and the fixed revision. Discuss unpatched findings in the private channel.
+
+The default transport checks host scope and the resolved IPv4 target before
+connecting. System DNS coverage is limited to the addresses returned by its
+resolver, and curl must be trusted. Keep the job directory and exports private.
+Custom UnsafeFetcher, Parser, Processor and Storage are trusted code.
+See [operational boundaries](docs/contracts.md) and [compatibility](docs/compatibility.md).

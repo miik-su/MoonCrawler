@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — maintenance
+
+- Require exact HTML media types and stop structural preflight at its first over-budget character.
+- Keep focused CI output separate from historical evidence and derive the local archive path from module metadata.
+- Document CLI use, license, HTTP and Robots scope, data rights and synthetic validation models.
+
 ## Unreleased — 2026-11-14 preparation
 
 - Document dated peer comparison, independent contributions, source/fixture provenance and remaining gates.

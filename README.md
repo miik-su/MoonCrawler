@@ -1,20 +1,31 @@
 # MoonCrawler
 
+[![Focused native verification](https://github.com/miik-su/MoonCrawler/actions/workflows/focused.yml/badge.svg)](https://github.com/miik-su/MoonCrawler/actions/workflows/focused.yml)
+
 面向安全访问、可靠恢复与受限资源导出的 MoonBit 静态网页抓取引擎。
 
 工作流程：URL 规范化 → Host 分组队列 → 默认 curl 安全传输 → Robots / 域名调度 → HTML 提取 → Pipeline → 增量持久化与重启恢复。
 
-当前版本 **0.2.3**。参见[最新完善说明](https://github.com/miik-su/MoonCrawler/blob/main/docs/review-0.2.3.md)及[测试数据和实际结果](https://github.com/miik-su/MoonCrawler/blob/main/evidence/2026-11-13-0.2.3/README.md)。
-[Windows / Ubuntu / macOS 定向 CI 结果](https://github.com/miik-su/MoonCrawler/blob/main/evidence/2026-11-13-0.2.3/platforms/README.md)已保存原始日志和内存数据。
-[支持范围与发布待办](docs/compatibility.md) 明确列出限制。
+当前源码版本 **0.2.3**，面向有明确站点授权范围的静态网页采集和离线内容处理。
+支持范围见[兼容矩阵](docs/compatibility.md)。各批验证按被测提交索引，包含三平台
+定向运行及历史合成负载数据。[验证记录](https://github.com/miik-su/MoonCrawler/blob/main/docs/verification.md)
 
 ## 快速开始
 
 要求 MoonBit `0.10.17+d971670cd` / moon `0.1.20261023`、native 工具链和 curl。
-Windows 可使用系统 curl；Linux 需要 C 编译器和 OpenSSL 开发依赖。
+需要 Native C 工具链。Windows 使用 MSVC 和系统 curl，Ubuntu 另需 OpenSSL 开发库，
+macOS 使用 Xcode Command Line Tools。先运行 `moon version --all` 和 `curl --version`。
+
+无需联网即可运行离线示例（依赖下载完成后），它会向标准输出写出两条 JSONL 页面记录：
 
 ```sh
 moon update
+moon run examples/offline --target native
+```
+
+实际抓取需要授权站点。下面使用 `example.com` 作为域名占位，运行前将配置和种子替换为你获准访问的站点。
+
+```sh
 moon run cmd/mooncrawler --target native -- init config.json
 ```
 
@@ -25,18 +36,18 @@ moon run cmd/mooncrawler --target native -- init config.json
 moon run cmd/mooncrawler --target native -- validate config.json
 moon run cmd/mooncrawler --target native -- crawl config.json data/job https://example.com/
 moon run cmd/mooncrawler --target native -- status data/job
+moon run cmd/mooncrawler --target native -- stats data/job
 moon run cmd/mooncrawler --target native -- export data/job pages.jsonl
-moon run cmd/mooncrawler --target native -- resume data/job
 ```
 
-运行时在另一终端执行 `pause data/job`，停止领取新任务并等待在途请求结束、保存检查点。
-恢复使用保存的配置。`stats` 与 `status` 显示最近检查点计数；导出拒绝覆盖已有文件。
-导出使用按需页面读取器，不会先恢复全部正文；导出期间持有作业锁，应先暂停或停止爬虫。
+运行时可在另一终端执行 `moon run cmd/mooncrawler --target native -- pause data/job`，
+等待原进程退出并保存状态后，用 `moon run cmd/mooncrawler --target native -- resume data/job`
+按保存的配置继续。`status` 显示保存的错误详情，`stats` 显示任务尝试和重试汇总。
+导出持有作业锁并拒绝覆盖已有文件，使用按需读取器逐条输出正文。
 
-离线扩展示例与本地真实 HTTP 验证：
+在源码仓库可运行真实 HTTP CLI 冒烟检查（使用本机回环服务）：
 
 ```sh
-moon run examples/offline --target native
 moon run tools/cli_smoke.mbtx
 ```
 
@@ -66,14 +77,19 @@ Frontier 的独立 fencing API 不表示 Engine 提供运行时抢占、续租�
 
 - [架构与扩展接口](docs/architecture.md)
 - [配置字段](docs/configuration.md)
+- [使用指南与故障排查](docs/user-guide.md)
+- [软件许可、协议与数据边界](docs/contracts.md)
+- [安全报告渠道](SECURITY.md)
 - [兼容性与后续计划](docs/compatibility.md)
 - [关键验证记录](https://github.com/miik-su/MoonCrawler/blob/main/docs/verification.md)
 - [依赖、Scrapy 与 RFC 参考来源](THIRD_PARTY_NOTICES.md)
 - [代码与验证材料来源](docs/source-provenance.md)
 - [本期实质贡献索引](https://github.com/miik-su/MoonCrawler/blob/main/docs/monthly-contributions.md)
+- [持续维护基线](https://github.com/miik-su/MoonCrawler/blob/main/docs/maintenance-baseline.md)
 - [工程与材料准备状态](https://github.com/miik-su/MoonCrawler/blob/main/docs/participation-readiness.md)
 
 测试范围、命令和原始结果见[验证记录](https://github.com/miik-su/MoonCrawler/blob/main/docs/verification.md)。API 精确签名见各包的 `pkg.generated.mbti`。
 当前按维护者要求暂不发布 Mooncakes；可以从源码运行。历史证据、验证脚本及探针保存在 GitHub，
 本地包清单将它们排除；打包后源码检查和离线示例可用 `moon run tools/package_check.mbtx` 验证。
-Apache-2.0；依赖按各自许可证使用。
+项目源代码采用 [Apache-2.0](LICENSE)。[NOTICE](NOTICE) 和
+[第三方声明](THIRD_PARTY_NOTICES.md) 记录归属和依赖许可证。

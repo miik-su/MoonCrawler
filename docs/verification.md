@@ -1,5 +1,18 @@
 # Focused verification
 
+## Current maintenance checks
+
+The [focused workflow](https://github.com/miik-su/MoonCrawler/actions/workflows/focused.yml)
+records source SHA and target platform in artifacts under `_build/readiness`.
+Run `moon run tools/readiness_evidence.mbtx` from the checkout to reproduce
+the compiler, formatting, API, transport, parser and archive checks. The
+workflow additionally checks selected queue, policy, storage and CLI paths.
+The parser group includes the media type match and structure budget cases.
+
+The saved 65 MiB storage and 100K-task models use synthetic inputs. Their
+reports retain the measured source, workload, platform and limits. A current
+focused pass validates selected behavior and does not remeasure their capacity.
+
 ## Current preparation checks (2026-11-14)
 
 See [readiness results](../evidence/2026-11-14-readiness/README.md).
