@@ -35,4 +35,4 @@ jobs:
         if: always()
         with:
           name: focused-evidence-${{ matrix.os }}
-          path: evidence/2026-11-14-readiness/
+          path: _build/readiness/

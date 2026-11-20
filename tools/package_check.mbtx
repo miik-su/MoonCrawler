@@ -9,13 +9,29 @@ async fn command(args : Array[String], cwd~ : String = ".") -> String {
   if output.exit_code() != 0 { println(output.stdout() + output.stderr()); output.check() }
   output.stdout()
 }
+fn manifest_string(manifest : String, field : String) -> String raise {
+  let prefix = field + " = "
+  let matches = manifest.split("\n").map(line => line.trim().to_owned()).filter(line => line.has_prefix(prefix)).to_array()
+  assert_eq(matches.length(), 1, msg="missing or duplicate module field: " + field)
+  guard @json.parse(matches[0][prefix.length():].to_owned()) is String(value) else {
+    abort("expected module string: " + field)
+  }
+  value
+}
+
 async fn main {
   let root = @fs.realpath(".")
+  let manifest = @fs.read_file("moon.mod").text()
+  let name = manifest_string(manifest, "name")
+  let version = manifest_string(manifest, "version")
+  assert_eq(manifest_string(manifest, "license"), "Apache-2.0")
+  assert_eq(manifest_string(manifest, "readme"), "README.md")
+  let archive_path = "_build/publish/" + name.replace_all(old="/", new="-") + "-" + version + ".zip"
   ignore(command(["moon", "package"]))
-  let archive = root + "/_build/publish/miik-su-mooncrawler-0.2.3.zip"
+  let archive = root + "/" + archive_path
   let list = if @async.platform is Windows { ["tar", "-tf", archive] } else { ["unzip", "-Z1", archive] }
   let entries = command(list).split("\n").map(p => p.trim().to_owned().replace_all(old="\\", new="/")).filter(p => !p.is_empty()).to_array()
-  let required = ["moon.mod", "README.md", "LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md", "core/models.mbt", "engine/engine.mbt", "storage/reader.mbt", "examples/offline/main.mbt", "cmd/mooncrawler/main.mbt", "docs/source-provenance.md"]
+  let required = ["moon.mod", "README.md", "LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md", "SECURITY.md", "core/models.mbt", "engine/engine.mbt", "storage/reader.mbt", "examples/offline/main.mbt", "cmd/mooncrawler/main.mbt", "docs/contracts.md", "docs/user-guide.md", "docs/source-provenance.md"]
   for path in required { assert_true(entries.contains(path)) }
   let excluded = [".git/", ".github/", "_build/", ".mooncakes/", "evidence/", "tools/", "cmd/evidence/", "cmd/parser_probe/", "cmd/recovery_probe/", "cmd/storage_probe/", "fuzz/"]
   for path in entries {
@@ -32,6 +48,6 @@ async fn main {
   let pages = example.split("\n").filter(p => p.has_prefix("{")).to_array()
   assert_eq(pages.length(), 2)
   for page in pages { @json.parse(page.to_owned()) |> ignore }
-  let report : Json = {"archive": "_build/publish/miik-su-mooncrawler-0.2.3.zip", "packaged_files": @json.to_json(entries.length()), "required_entries_present": true, "excluded_entries_absent": true, "extracted_native_check": "passed with deny-warn", "extracted_offline_pages": 2, "published": false, "registry_install_tested": false, "files": @json.to_json(entries)}
+  let report : Json = {"archive": @json.to_json(archive_path), "module": @json.to_json(name), "version": @json.to_json(version), "packaged_files": @json.to_json(entries.length()), "required_entries_present": true, "excluded_entries_absent": true, "extracted_native_check": "passed with deny-warn", "extracted_offline_pages": 2, "published": false, "registry_install_tested": false, "files": @json.to_json(entries)}
   println(report.stringify(indent=2))
 }
