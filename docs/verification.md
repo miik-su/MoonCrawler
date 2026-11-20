@@ -2,6 +2,7 @@
 
 ## Current maintenance checks
 
+See the [2026-11-20 maintenance evidence](../evidence/2026-11-20-maintenance/README.md).
 The [focused workflow](https://github.com/miik-su/MoonCrawler/actions/workflows/focused.yml)
 records source SHA and target platform in artifacts under `_build/readiness`.
 Run `moon run tools/readiness_evidence.mbtx` from the checkout to reproduce

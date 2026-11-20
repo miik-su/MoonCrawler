@@ -1,0 +1,32 @@
+Total tests: 3, passed: 3, failed: 0.
+watch_kqueue.c
+watch_inotify.c
+epoll.c
+kqueue.c
+unix.c
+io_unix.c
+openssl.c
+stub.c
+stub.c
+stub.c
+stdio.c
+windows.c
+stub.c
+io_windows.c
+watch_windows.c
+process.c
+event_bus.c
+dir.c
+iocp.c
+fs.c
+<user>\Documents\ChatGPT\moonbit\MoonCrawler\.mooncakes\moonbitlang\async\src\internal\event_loop\fs.c(32): warning C4005: “EINVAL”: 宏重定义
+C:\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(78): note: 参见“EINVAL”的前一个定义
+stub.c
+stub.c
+thread_pool.c
+stub.c
+signal.c
+schannel.c
+socket.c
+  正在创建库 <user>\Documents\ChatGPT\moonbit\MoonCrawler\_build\native\debug\test\fetcher\fetcher.internal_test.lib 和对象 <user>\Documents\ChatGPT\moonbit\MoonCrawler\_build\native\debug\test\fetcher\fetcher.internal_test.exp
+  正在创建库 <user>\Documents\ChatGPT\moonbit\MoonCrawler\_build\native\debug\test\fetcher\fetcher.blackbox_test.lib 和对象 <user>\Documents\ChatGPT\moonbit\MoonCrawler\_build\native\debug\test\fetcher\fetcher.blackbox_test.exp
