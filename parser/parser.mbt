@@ -51,15 +51,22 @@ fn has_rel(value : String, token : String) -> Bool {
 /// HTML5 DOM supplied by moonbit-community/html. Iterative traversal avoids recursive extraction.
 pub fn extract(response : @core.Response) -> @core.Page raise @core.CrawlError {
   let ct = response.headers.get("content-type").unwrap_or("").to_lower()
-  if !ct.has_prefix("text/html") && !ct.has_prefix("application/xhtml+xml") {
+  let media = ct.split(";").next().unwrap_or("").trim()
+  if media != "text/html" && media != "application/xhtml+xml" {
     raise @core.Protocol("unsupported page content type")
   }
   // The upstream tree builder has no node budget. Bound input before DOM construction.
   if response.body.length() > 524288 {
     raise @core.Capacity("HTML parser input exceeds 512K code units")
   }
-  if response.body.iter().filter(c => c == '<').count() > 4096 {
-    raise @core.Capacity("HTML structural preflight budget exceeded")
+  let mut openings = 0
+  for c in response.body {
+    if c == '<' {
+      openings += 1
+      if openings > 4096 {
+        raise @core.Capacity("HTML structural preflight budget exceeded")
+      }
+    }
   }
   let doc = @html.parse(response.body)
   if doc.nodes.length() > 100000 {

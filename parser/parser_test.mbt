@@ -15,3 +15,25 @@ test "HTML5 malformed multilingual DOM extraction base and nofollow" {
   assert_false(page.text.contains("secret"))
   assert_true(page.text.contains("世界"))
 }
+
+///|
+test "HTML parser requires an exact supported media type" {
+  let response : @core.Response = {
+    url: @url.parse("https://example.com/"),
+    status: 200,
+    headers: { "content-type": "Application/XHTML+XML ; charset=UTF-8" },
+    body: "<title>Document</title>",
+  }
+  assert_eq(@parser.extract(response).title, "Document")
+  for media in ["text/html-other", "application/xhtml+xml-other", ""] {
+    let rejected = { ..response, headers: { "content-type": media }, }
+    assert_true(
+      try @parser.extract(rejected) catch {
+        @core.Protocol(_) => true
+        _ => false
+      } noraise {
+        _ => false
+      },
+    )
+  }
+}
