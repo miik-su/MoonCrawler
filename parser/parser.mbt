@@ -50,6 +50,14 @@ fn has_rel(value : String, token : String) -> Bool {
 ///|
 /// HTML5 DOM supplied by moonbit-community/html. Iterative traversal avoids recursive extraction.
 pub fn extract(response : @core.Response) -> @core.Page raise @core.CrawlError {
+  let (doc, ct) = parse_document(response)
+  extract_document(doc, response, ct)
+}
+
+///|
+fn parse_document(
+  response : @core.Response,
+) -> (@html.Document, String) raise @core.CrawlError {
   let ct = response.headers.get("content-type").unwrap_or("").to_lower()
   let media = ct.split(";").next().unwrap_or("").trim()
   if media != "text/html" && media != "application/xhtml+xml" {
@@ -72,13 +80,22 @@ pub fn extract(response : @core.Response) -> @core.Page raise @core.CrawlError {
   if doc.nodes.length() > 100000 {
     raise @core.Capacity("HTML node budget exceeded")
   }
+  (doc, ct)
+}
+
+///|
+fn extract_document(
+  doc : @html.Document,
+  response : @core.Response,
+  ct : String,
+) -> @core.Page {
   let mut base = response.url
   for i in 0..<doc.nodes.length() {
     if doc.get_tag_name(i) == Some("base") {
       if doc.get_attribute(i, "href") is Some(href) {
         base = @url.resolve(response.url, href) catch { _ => response.url }
+        break
       }
-      break
     }
   }
   let links : Array[String] = []

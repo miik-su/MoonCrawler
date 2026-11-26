@@ -11,10 +11,23 @@ pub fn extract(@core.Response) -> @core.Page raise @core.CrawlError
 // Errors
 
 // Types and methods
+pub(all) struct Field {
+  name : String
+  selector : String
+  attribute : String?
+}
+
 pub(all) struct HtmlParser {
 }
 pub fn HtmlParser::parse(Self, @core.Response) -> @core.Page raise
 pub impl Parser for HtmlParser
+
+pub struct SelectorParser {
+  // private fields
+}
+pub fn SelectorParser::new(Array[Field]) -> Self raise @core.CrawlError
+pub fn SelectorParser::parse(Self, @core.Response) -> @core.Page raise
+pub impl Parser for SelectorParser
 
 // Type aliases
 
