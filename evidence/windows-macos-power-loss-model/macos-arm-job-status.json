@@ -84,6 +84,23 @@
       "steps": [],
       "log_api_result": "NOT_FOUND",
       "job_url": "https://github.com/miik-su/MoonCrawler/actions/runs/45790818641/job/139842691575"
+    },
+    {
+      "workflow_run_id": 45790818641,
+      "run_attempt": 3,
+      "job_id": 139901622406,
+      "source_revision": "5aaecc77a0a85a7bfb35b3b75c98a22965028ea3",
+      "labels": [
+        "macos-26"
+      ],
+      "status": "completed",
+      "conclusion": "cancelled",
+      "runner_name": "",
+      "started_at": "2026-11-26T12:13:53Z",
+      "completed_at": "2026-11-26T12:28:54Z",
+      "steps": [],
+      "log_api_result": "NOT_FOUND",
+      "job_url": "https://github.com/miik-su/MoonCrawler/actions/runs/45790818641/job/139901622406"
     }
   ]
 }
