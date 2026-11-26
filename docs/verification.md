@@ -1,5 +1,18 @@
 # Focused verification
 
+## Windows and macOS persisted-state recovery model
+
+`moon test storage/power_loss_model_test.mbt --target native --deny-warn`
+reopens synthetic FileStore jobs on the target OS after changing only fixture
+files with the writer closed. It covers uncommitted staging, a lost WAL tail,
+a sequence gap, a truncated record and index rollback before and after cleanup.
+The test deliberately distinguishes safe replay, explicit rejection and quiet
+rollback to an older valid state.
+
+This model does not measure whether NTFS, APFS, or any other filesystem produces
+these states under a power cut. It does not interrupt a Windows or macOS VM or
+exercise controller caches. See [archived results](../evidence/windows-macos-power-loss-model/README.md).
+
 ## Coverage feedback and virtual power cut
 
 `moon run tools/coverage_guided.mbtx` builds an instrumented native child and
