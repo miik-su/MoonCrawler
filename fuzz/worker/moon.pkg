@@ -1,0 +1,19 @@
+import {
+  "miik-su/mooncrawler/core",
+  "miik-su/mooncrawler/url",
+  "miik-su/mooncrawler/robots",
+  "miik-su/mooncrawler/fetcher",
+  "miik-su/mooncrawler/parser",
+  "miik-su/mooncrawler/sitemap",
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/async/fs",
+  "moonbitlang/async",
+}
+
+pkgtype(kind: "executable")
+
+options(
+  supported_targets: "native",
+)

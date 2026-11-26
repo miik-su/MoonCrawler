@@ -1,0 +1,126 @@
+----
+import {
+  "moonbitlang/async@0.22.5",
+  "moonbitlang/async@0.22.5/fs",
+  "moonbitlang/async@0.22.5/shell",
+  "moonbitlang/core/json",
+}
+----
+
+let dir = "_build/coverage-guided"
+
+fn seeds(mode : String) -> Array[String] {
+  match mode {
+    "url" => ["https://example.com/", "http://example.com:80/path/../docs?q=1#part", "https://xn--bcher-kva.example/%7Euser"]
+    "robots" => ["User-agent: *\nDisallow: /private", "User-agent: MoonCrawler\r\nAllow: /private/public\nDisallow: /private/*\nSitemap: https://example.com/map.xml"]
+    "fetcher" => ["HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 3\r\n\r\nabc", "HTTP/1.1 304 Not Modified\r\nETag: \"code\"\r\n\r\n", "HTTP/1.1 203 OK\r\nX-Foo: a\r\nX-Foo: b\r\n\r\n"]
+    "parser" => ["<title>Test</title><p>Hello</p>", "<base href='/docs/'><a href='next' rel='nofollow'>Next</a><img src='photo.png'>", "<meta name='description' content='summary'><link rel='canonical' href='/index'>"]
+    "sitemap" => ["<?xml version='1.0'?><urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'><url><loc>https://example.com/a?x=1&amp;y=2</loc></url></urlset>", "<sitemapindex xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'><sitemap><loc>https://example.com/map.xml</loc></sitemap></sitemapindex>"]
+    _ => abort("unknown target")
+  }
+}
+
+fn mutate(input : String, state : UInt32) -> String {
+  // The seed and dictionary are ASCII, so every slicing boundary is valid.
+  let position = ((state >> 4) % (input.length() + 1).reinterpret_as_uint()).reinterpret_as_int()
+  let from = input[:position].to_owned()
+  let tail = input[position:].to_owned()
+  let tokens = ["X", " ", "\r\n", "/", "%20", "<", ">", "'", "&amp;", "?!", ":", "="]
+  let token = tokens[((state >> 17) % tokens.length().reinterpret_as_uint()).reinterpret_as_int()]
+  match (state % 5U).reinterpret_as_int() {
+    0 => from
+    1 => from + token + tail
+    2 => from + tail[tail.length().min(1):].to_owned()
+    3 => from + token + tail[tail.length().min(1):].to_owned()
+    _ => from + tail[:tail.length().min(8)].to_owned() + tail
+  }
+}
+
+async fn output(args : Array[String]) -> String {
+  let result = @shell.Cmd(args[0], args[1:].to_owned()).output(timeout_ms=120000)
+  result.check()
+  result.stdout().trim().to_owned()
+}
+
+async fn main {
+  let source = output(["git", "rev-parse", "HEAD"])
+  let dirty = !output(["git", "status", "--porcelain"]).is_empty()
+  @fs.mkdir(dir, recursive=true, allow_exist=true)
+  if @fs.exists(dir + "/result.json") { @fs.remove(dir + "/result.json") }
+  let build = ["moon", "build", "fuzz/worker", "--target", "native", "--enable-coverage", "--target-dir", dir, "--deny-warn"]
+  output(build) |> ignore
+  let base = dir + "/native/debug/build/fuzz/worker/worker"
+  let worker = if @fs.exists(base + ".exe") { base + ".exe" } else { base }
+  guard @fs.exists(worker) else { abort("missing instrumented worker") }
+  let rows : Array[Json] = []
+  let mut state = 0x37d8ab24U
+  let mut total_derived = 0
+  for mode in ["url", "robots", "fetcher", "parser", "sitemap"] {
+    let corpus = seeds(mode)
+    let seed_count = corpus.length()
+    let hits : Map[String, Bool] = Map([])
+    let mut initial = 0
+    let mut discoveries = 0
+    let mut derived = 0
+    let mut accepted = 0
+    let iterations = 48
+    for i in 0..<(seed_count + iterations) {
+      state = state * 1664525U + 1013904223U
+      let index = if i < seed_count { i } else { ((state >> 1) % corpus.length().reinterpret_as_uint()).reinterpret_as_int() }
+      if index >= seed_count { derived += 1 }
+      let candidate = if i < seed_count { corpus[index] } else { mutate(corpus[index], state) }
+      let case : Json = { "mode": @json.to_json(mode), "input": @json.to_json(candidate) }
+      let path = dir + "/active.json"
+      @fs.write_file(path, case.stringify())
+      let result = @shell.Cmd(worker, [path]).output(timeout_ms=5000, max_output_bytes=1048576)
+      if result.exit_code() != 0 {
+        @fs.write_file(dir + "/failed.json", case.stringify())
+        abort("fuzz worker failed; local case preserved")
+      }
+      let stdout = result.stdout()
+      let pieces = stdout.split("----- BEGIN MOONBIT COVERAGE -----").to_array()
+      guard pieces.length() == 2 else { abort("missing compiler coverage feedback") }
+      let counter_text = pieces[1].to_owned().split("----- END MOONBIT COVERAGE -----").next().unwrap().trim().to_owned()
+      guard @json.parse(counter_text) is Object(files) else { abort("invalid runtime counters") }
+      guard @json.parse(pieces[0].trim().to_owned()) is Object(outcome) &&
+        outcome.get("accepted") is Some(True | False) else { abort("missing worker outcome") }
+      if outcome.get("accepted") == Some(Json::boolean(true)) { accepted += 1 }
+      let before = hits.length()
+      for id, values in files {
+        if !id.has_prefix("miik-su/mooncrawler/" + mode + "$") { continue }
+        guard values is Array(counters) else { abort("invalid counter vector") }
+        for slot, count in counters {
+          if count is Number(n, ..) && n > 0.0 {
+            hits[id + "#" + slot.to_string()] = true
+          }
+        }
+      }
+      if i == seed_count - 1 { initial = hits.length() }
+      if i >= seed_count && hits.length() > before {
+        discoveries += 1
+        corpus.push(candidate)
+      }
+    }
+    guard initial > 0 else { abort("no target coverage counters: " + mode) }
+    total_derived += derived
+    rows.push({
+      "target": @json.to_json(mode), "seed_cases": @json.to_json(seed_count),
+      "mutation_cases": @json.to_json(iterations), "accepted_cases": @json.to_json(accepted),
+      "rejected_cases": @json.to_json(seed_count + iterations - accepted),
+      "seed_hit_slots": @json.to_json(initial), "final_hit_slots": @json.to_json(hits.length()),
+      "new_corpus_inputs": @json.to_json(discoveries), "retained_parent_uses": @json.to_json(derived),
+    })
+  }
+  guard total_derived > 0 else { abort("no coverage-retained input was used as a mutation parent") }
+  let platform = match @async.platform { Windows => "Windows"; Linux => "Linux"; MacOS => "macOS" }
+  let report : Json = {
+    "source_revision": @json.to_json(source), "source_dirty_at_start": @json.to_json(dirty),
+    "platform": @json.to_json(platform), "toolchain": @json.to_json(output(["moon", "version"])),
+    "build": @json.to_json(build), "seed": "0x37d8ab24",
+    "feedback": "MoonBit compiler instrumentation keyed by target and nonzero runtime counter slot",
+    "worker_timeouts_or_failures": 0, "per_case_deadline_ms": 5000,
+    "full_suite": false, "targets": @json.to_json(rows),
+  }
+  @fs.write_file(dir + "/result.json", report.stringify(indent=2) + "\n")
+  println(report.stringify(indent=2))
+}
