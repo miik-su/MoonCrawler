@@ -17,6 +17,7 @@ and checks task/page recovery. The guest has no network or host-mounted director
 Compilation and tests run only on the configured targets; no full suite or
 registry publication is invoked by this workflow.
 [Specialized CI](https://github.com/miik-su/MoonCrawler/actions/workflows/specialized.yml)
+· [Archived results and boundary](../evidence/2026-11-26-specialized/README.md)
 
 A successful virtual test concerns the guest kernel, ext4 and the selected QEMU
 block options. It does not reproduce power removal from physical disks, controller

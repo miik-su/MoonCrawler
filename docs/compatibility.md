@@ -29,7 +29,8 @@ and performance verification remain release gates.
 | Monitoring | persisted states, attempts, errors, save time; in-process request/outcome/duration and page budget metrics via API and optional CLI JSON |
 
 The upstream HTML parser has no preallocation/node budget or cancellation hook.
-Input is bounded, but pathological HTML needs further fuzzing and profiling.
+Input is bounded. A short coverage-guided campaign covers selected HTML input
+mutations. It does not establish an upstream DOM memory bound or complete coverage.
 Task metadata remains in memory during execution and recovery; the default
 library constructor also retains pages. The 100K task ceiling is a bound,
 not a measured throughput or memory guarantee. See [audit status](https://github.com/miik-su/MoonCrawler/blob/main/docs/audit-upgrade.md).
@@ -41,8 +42,10 @@ address sets; SystemResolver still exposes only the native selected IPv4 address
 
 - Complete platform/TLS certification, system-resolver/public-DNS cache coverage.
 - GBK decoder, optional cookie sessions and proxy adapters.
-- Metrics/logging exporters, coverage-guided HTML fuzzing and real-page throughput.
-- Directory metadata power-loss durability and additional platform crash fixtures.
+- Metrics/logging exporters, broader parser fuzzing and real-page throughput.
+- Physical power interruption and other filesystem/platform crash fixtures.
+  [Linux/ext4 virtual power-cut evidence](https://github.com/miik-su/MoonCrawler/tree/main/evidence/2026-11-26-specialized)
+  covers five specific write/publication stages.
 - Mooncakes publication and signed release artifacts.
 
 See [0.2.3 evidence](https://github.com/miik-su/MoonCrawler/blob/main/evidence/2026-11-13-0.2.3/README.md) for selected tests,

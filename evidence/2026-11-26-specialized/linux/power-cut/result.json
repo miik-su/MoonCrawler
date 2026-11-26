@@ -1,0 +1,46 @@
+{
+  "source_revision": "eefecacabaea9c6c98ef20dbd0cc909821d11716",
+  "source_dirty_at_start": false,
+  "kernel": "7.0.0-1018-aws",
+  "qemu": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)\nCopyright (c) 2003-2023 Fabrice Bellard and the QEMU Project developers",
+  "filesystem": "ext4",
+  "drive": "raw virtio cache=none",
+  "guest_journal_commit_seconds": 600,
+  "guest_memory_mib": 1024,
+  "guest_cpus": 1,
+  "cut": "host SIGKILL of QEMU process after guest serial marker; no guest shutdown",
+  "limits": "guest crash semantics on this ext4 and virtual disk; host hardware remains powered",
+  "full_suite": false,
+  "cases": [
+    {
+      "stage": "event_staged",
+      "abrupt_vmm_termination": true,
+      "reboot_verified": true,
+      "expected_terminal_tasks_and_pages": 0
+    },
+    {
+      "stage": "event_published",
+      "abrupt_vmm_termination": true,
+      "reboot_verified": true,
+      "expected_terminal_tasks_and_pages": 1
+    },
+    {
+      "stage": "shard_published",
+      "abrupt_vmm_termination": true,
+      "reboot_verified": true,
+      "expected_terminal_tasks_and_pages": 1
+    },
+    {
+      "stage": "checkpoint_published",
+      "abrupt_vmm_termination": true,
+      "reboot_verified": true,
+      "expected_terminal_tasks_and_pages": 1
+    },
+    {
+      "stage": "cleanup_removed",
+      "abrupt_vmm_termination": true,
+      "reboot_verified": true,
+      "expected_terminal_tasks_and_pages": 1
+    }
+  ]
+}

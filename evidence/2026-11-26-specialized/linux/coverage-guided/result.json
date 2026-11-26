@@ -1,0 +1,79 @@
+{
+  "source_revision": "eefecacabaea9c6c98ef20dbd0cc909821d11716",
+  "source_dirty_at_start": false,
+  "platform": "Linux",
+  "toolchain": "moon 0.1.20261023 (3778465 2026-10-23)\n\nFeature flags enabled: rr_moon_mod,rr_moon_pkg",
+  "build": [
+    "moon",
+    "build",
+    "fuzz/worker",
+    "--target",
+    "native",
+    "--enable-coverage",
+    "--target-dir",
+    "_build/coverage-guided",
+    "--deny-warn"
+  ],
+  "seed": "0x37d8ab24",
+  "feedback": "MoonBit compiler instrumentation keyed by target and nonzero runtime counter slot",
+  "worker_timeouts_or_failures": 0,
+  "per_case_deadline_ms": 5000,
+  "full_suite": false,
+  "targets": [
+    {
+      "target": "url",
+      "seed_cases": 3,
+      "mutation_cases": 48,
+      "accepted_cases": 16,
+      "rejected_cases": 35,
+      "seed_hit_slots": 112,
+      "final_hit_slots": 126,
+      "new_corpus_inputs": 8,
+      "retained_parent_uses": 34
+    },
+    {
+      "target": "robots",
+      "seed_cases": 2,
+      "mutation_cases": 48,
+      "accepted_cases": 50,
+      "rejected_cases": 0,
+      "seed_hit_slots": 95,
+      "final_hit_slots": 99,
+      "new_corpus_inputs": 3,
+      "retained_parent_uses": 20
+    },
+    {
+      "target": "fetcher",
+      "seed_cases": 3,
+      "mutation_cases": 48,
+      "accepted_cases": 14,
+      "rejected_cases": 37,
+      "seed_hit_slots": 68,
+      "final_hit_slots": 72,
+      "new_corpus_inputs": 4,
+      "retained_parent_uses": 18
+    },
+    {
+      "target": "parser",
+      "seed_cases": 3,
+      "mutation_cases": 48,
+      "accepted_cases": 51,
+      "rejected_cases": 0,
+      "seed_hit_slots": 97,
+      "final_hit_slots": 102,
+      "new_corpus_inputs": 2,
+      "retained_parent_uses": 11
+    },
+    {
+      "target": "sitemap",
+      "seed_cases": 2,
+      "mutation_cases": 48,
+      "accepted_cases": 3,
+      "rejected_cases": 47,
+      "seed_hit_slots": 118,
+      "final_hit_slots": 140,
+      "new_corpus_inputs": 9,
+      "retained_parent_uses": 37
+    }
+  ]
+}

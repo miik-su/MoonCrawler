@@ -11,6 +11,9 @@
 定向运行及历史合成负载数据。[0.3.0 三平台结果及模型](https://github.com/miik-su/MoonCrawler/tree/main/evidence/2026-11-26-0.3.0) ·
 [历次验证记录](https://github.com/miik-su/MoonCrawler/blob/main/docs/verification.md)
 
+[覆盖引导与 Linux/ext4 虚拟断电结果](https://github.com/miik-su/MoonCrawler/tree/main/evidence/2026-11-26-specialized)
+记录了测量数据、修复前后的结果及适用范围。
+
 ## 快速开始
 
 要求 MoonBit `0.10.17+d971670cd` / moon `0.1.20261023`、native 工具链和 curl。
