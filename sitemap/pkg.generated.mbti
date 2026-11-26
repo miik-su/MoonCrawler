@@ -1,0 +1,26 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "miik-su/mooncrawler/sitemap"
+
+import {
+  "miik-su/mooncrawler/core",
+}
+
+// Values
+pub fn parse(String) -> Document raise @core.CrawlError
+
+// Errors
+
+// Types and methods
+pub(all) struct Document {
+  kind : Kind
+  locations : Array[String]
+}
+
+pub(all) enum Kind {
+  UrlSet
+  Index
+}
+
+// Type aliases
+
+// Traits
