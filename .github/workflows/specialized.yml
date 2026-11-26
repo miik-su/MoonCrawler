@@ -1,0 +1,32 @@
+name: Coverage feedback and virtual power cut
+on:
+  push:
+    paths:
+      - 'fuzz/**'
+      - 'storage/**'
+      - 'cmd/recovery_probe/**'
+      - 'tools/coverage_guided.mbtx'
+      - 'tools/power_cut.mbtx'
+      - '.github/workflows/specialized.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  specialized:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: ./.github/actions/setup
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y --no-install-recommends qemu-system-x86 busybox-static cpio zstd libssl-dev
+      - run: moon update
+      - run: moon run tools/coverage_guided.mbtx
+      - run: moon run tools/power_cut.mbtx
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: specialized-evidence
+          path: |
+            _build/coverage-guided/result.json
+            _build/power-cut/

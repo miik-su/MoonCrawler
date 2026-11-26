@@ -43,7 +43,11 @@ edits. Job directories must be trusted and private to the operating-system user.
 Interrupted running tasks resume as retry-pending, or terminal when attempts are
 exhausted. Successful tasks remain completed. Requests are at-least-once; pages
 are keyed by canonical final URL. A request may execute twice after a crash.
-There is no claim of exactly-once networking or power-loss durability of directory metadata.
+There is no claim of exactly-once networking. On Linux, file sync is followed
+by an explicit job-directory sync after each rename, before the new record is
+acknowledged or older records can be removed after index publication. This
+covers the job directory itself, not durability of newly created ancestors.
+Other operating systems retain the previous file-sync behavior.
 
 The CLI uses the streaming FileStore constructor. Restore validates one bounded
 record at a time, keeps task metadata, page identities and sizes, and discards

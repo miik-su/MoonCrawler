@@ -24,7 +24,11 @@ async fn main {
   }
   let store = @storage.FileStore::open(dir, probe=stage => {
     if stage == args[3] {
-      @fs.write_file(dir + "/ready", stage)
+      if args[1] == "vm-write" {
+        println("MOONCRAWLER_CUT:" + stage)
+      } else {
+        @fs.write_file(dir + "/ready", stage)
+      }
       // Parent forcibly terminates this process; no store.close/defer may run.
       for ;; {
         @async.sleep(1000)

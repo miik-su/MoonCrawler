@@ -110,6 +110,7 @@ async fn atomic_file(
   }
   probe(stage + "_staged")
   @fs.rename(temp, directory + "/" + name, replace~)
+  sync_publication(directory)
   probe(stage + "_published")
 }
 

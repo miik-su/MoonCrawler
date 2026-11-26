@@ -1,5 +1,28 @@
 # Focused verification
 
+## Coverage feedback and virtual power cut
+
+`moon run tools/coverage_guided.mbtx` builds an instrumented native child and
+runs a small offline campaign against URL, Robots, HTTP decoding, HTML and
+Sitemap. Only new nonzero compiler counter slots promote mutations into the
+parent corpus. It reports counts before and after mutation, successful reuse
+of retained inputs, and unexpected subprocess failures. Malformed inputs
+rejected by a parser are normal outcomes. Counter totals are not a percentage
+of branch coverage, and ASCII mutations do not cover all encodings or DOM inputs.
+
+`moon run tools/power_cut.mbtx` runs in an isolated Linux QEMU environment
+with a fresh raw ext4 disk image for each stage. The writer signals the host over
+serial. The host kills the whole VM process, then boots a new VM on the same disk
+and checks task/page recovery. The guest has no network or host-mounted directories.
+Compilation and tests run only on the configured targets; no full suite or
+registry publication is invoked by this workflow.
+[Specialized CI](https://github.com/miik-su/MoonCrawler/actions/workflows/specialized.yml)
+
+A successful virtual test concerns the guest kernel, ext4 and the selected QEMU
+block options. It does not reproduce power removal from physical disks, controller
+cache loss, dishonest flush acknowledgments, Windows/macOS or other filesystems.
+The fixture creates and flushes an initial job on an existing mounted directory.
+
 ## Current maintenance checks
 
 The [0.3.0 maintenance model and focused evidence](https://github.com/miik-su/MoonCrawler/tree/main/evidence/2026-11-26-0.3.0)

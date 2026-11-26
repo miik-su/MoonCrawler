@@ -1,0 +1,157 @@
+----
+import {
+  "moonbitlang/async@0.22.5",
+  "moonbitlang/async@0.22.5/fs",
+  "moonbitlang/async@0.22.5/process",
+  "moonbitlang/async@0.22.5/shell",
+  "moonbitlang/core/json",
+}
+----
+
+async fn command(cmd : String, args : Array[String]) -> String {
+  let result = @shell.Cmd(cmd, args).output(timeout_ms=120000)
+  if result.exit_code() != 0 { println(result.stderr()) }
+  result.check()
+  result.stdout().trim().to_owned()
+}
+
+// Minimal Linux PID 1 bootstrap. All fixture creation, cuts and assertions
+// are orchestrated by MoonBit. No guest network or host directory sharing.
+let init =
+  #|#!/bin/busybox sh
+  #|set -eu
+  #|bb=/bin/busybox
+  #|$bb mount -t proc proc /proc
+  #|$bb mount -t devtmpfs devtmpfs /dev
+  #|exec </dev/console >/dev/console 2>&1
+  #|while read -r module; do
+  #|  [ -z "$module" ] || $bb insmod "$module"
+  #|done < /modules.list
+  #|phase=
+  #|stage=
+  #|for arg in $($bb cat /proc/cmdline); do
+  #|  case "$arg" in
+  #|    probe_phase=*) phase=${arg#*=} ;;
+  #|    probe_stage=*) stage=${arg#*=} ;;
+  #|  esac
+  #|done
+  #|while [ ! -b /dev/vda ]; do $bb sleep 0.05; done
+  #|$bb mount -t ext4 -o commit=600 /dev/vda /job
+  #|if [ "$phase" = "write" ]; then
+  #|  /probe init /job
+  #|  $bb sync
+  #|  exec /probe vm-write /job "$stage"
+  #|fi
+  #|/probe verify /job "$stage"
+  #|echo "MOONCRAWLER_RECOVERED:$stage"
+  #|$bb poweroff -f
+
+async fn guest(work : String, version : String, executable : String) -> Unit {
+  let root = work + "/root"
+  for name in ["bin", "proc", "dev", "job", "modules"] {
+    @fs.mkdir(root + "/" + name, recursive=true, allow_exist=true)
+  }
+  command("cp", ["-L", "/bin/busybox", root + "/bin/busybox"]) |> ignore
+  command("cp", ["-L", executable, root + "/probe"]) |> ignore
+  for line in command("ldd", [executable]).split("\n") {
+    for segment in line.split(" ") {
+      let path = segment.trim().to_owned()
+      if path.has_prefix("/") {
+        let parts = path.split("/").to_array()
+        let parent = parts[:parts.length() - 1].to_owned().map(s => s.to_owned()).join("/")
+        @fs.mkdir(root + parent, recursive=true, allow_exist=true)
+        command("cp", ["-L", path, root + path]) |> ignore
+      }
+    }
+  }
+  let module_paths : Map[String, Bool] = Map([])
+  let module_names : Array[String] = []
+  for required in ["virtio_pci", "virtio_blk", "ext4"] {
+    for line in command("modprobe", ["--set-version", version, "--show-depends", required]).split("\n") {
+      if !line.has_prefix("insmod ") { continue }
+      let path = line.to_owned().split(" ").to_array()[1].to_owned()
+      if module_paths.contains(path) { continue }
+      module_paths[path] = true
+      let name = "/modules/" + module_names.length().to_string() + ".ko"
+      if path.has_suffix(".zst") {
+        command("zstd", ["-dq", path, "-o", root + name]) |> ignore
+      } else if path.has_suffix(".xz") {
+        @shell.Cmd("xz", ["-dc", path], stdout=ToFile(root + name)).run()
+      } else {
+        command("cp", [path, root + name]) |> ignore
+      }
+      module_names.push(name)
+    }
+  }
+  @fs.write_file(root + "/modules.list", module_names.join("\n") + "\n")
+  @fs.write_file(root + "/init", init + "\n")
+  command("chmod", ["0755", root + "/init", root + "/probe"]) |> ignore
+  let paths = @shell.Cmd("find", [".", "-print"], cwd=root).output()
+  paths.check()
+  @shell.Cmd("cpio", ["-o", "-H", "newc", "-F", work + "/initrd"], cwd=root, stdin=Text(paths.stdout())).run()
+}
+
+async fn boot(work : String, disk : String, stage : String, phase : String, log : String) -> Unit {
+  let recover = phase == "verify"
+  let mark = (if recover { "MOONCRAWLER_RECOVERED:" } else { "MOONCRAWLER_CUT:" }) + stage
+  let args = [
+    "-m", "384", "-machine", "accel=tcg", "-nodefaults", "-display", "none",
+    "-serial", "file:" + log, "-monitor", "none", "-nic", "none", "-no-reboot",
+    "-kernel", work + "/kernel", "-initrd", work + "/initrd",
+    "-drive", "file=" + disk + ",format=raw,if=virtio,cache=none",
+    "-append", "console=ttyS0 quiet rdinit=/init probe_phase=" + phase + " probe_stage=" + stage,
+  ]
+  @async.with_timeout(60000, () => @async.with_task_group(group => {
+    let vm = @process.spawn(group, "qemu-system-x86_64", args, no_wait=true, cancel_handler=@process.hard_cancel())
+    while !@fs.exists(log) { @async.sleep(50) }
+    while !@fs.read_file(log).text().split("\n").any(line => line.trim() == mark) {
+      @async.sleep(50)
+    }
+    if recover {
+      assert_eq(vm.wait(), 0)
+    } else {
+      vm.cancel()
+      let code = vm.wait() catch { _ => -1 }
+      assert_true(code != 0)
+    }
+  }))
+}
+
+async fn main {
+  guard @async.platform is Linux else { abort("use the isolated Linux QEMU verification job") }
+  let source = command("git", ["rev-parse", "HEAD"])
+  let dirty = !command("git", ["status", "--porcelain"]).is_empty()
+  let version = command("uname", ["-r"])
+  let report_dir = @fs.realpath(".") + "/_build/power-cut"
+  @fs.mkdir(report_dir, recursive=true, allow_exist=true)
+  if @fs.exists(report_dir + "/result.json") { @fs.remove(report_dir + "/result.json") }
+  let work = @fs.tmpdir(prefix="mooncrawler-power-cut-")
+  defer @fs.rmdir(work, recursive=true)
+  command("sudo", ["install", "-m", "0644", "/boot/vmlinuz-" + version, work + "/kernel"]) |> ignore
+  command("moon", ["build", "cmd/recovery_probe", "--target", "native", "--deny-warn"]) |> ignore
+  let base = @fs.realpath(".") + "/_build/native/debug/build/cmd/recovery_probe/recovery_probe"
+  let executable = if @fs.exists(base + ".exe") { base + ".exe" } else { base }
+  guest(work, version, executable)
+  let rows : Array[Json] = []
+  for stage in ["event_staged", "event_published", "shard_published", "checkpoint_published", "cleanup_removed"] {
+    let disk = work + "/disk-" + stage + ".raw"
+    command("truncate", ["-s", "64M", disk]) |> ignore
+    command("mkfs.ext4", ["-q", "-F", "-E", "lazy_itable_init=0,lazy_journal_init=0", disk]) |> ignore
+    boot(work, disk, stage, "write", report_dir + "/" + stage + "-cut.log")
+    boot(work, disk, stage, "verify", report_dir + "/" + stage + "-reboot.log")
+    rows.push({
+      "stage": @json.to_json(stage), "abrupt_vmm_termination": true,
+      "reboot_verified": true, "expected_terminal_tasks_and_pages": @json.to_json(if stage == "event_staged" { 0 } else { 1 }),
+    })
+  }
+  let report : Json = {
+    "source_revision": @json.to_json(source), "source_dirty_at_start": @json.to_json(dirty),
+    "kernel": @json.to_json(version), "qemu": @json.to_json(command("qemu-system-x86_64", ["--version"])),
+    "filesystem": "ext4", "drive": "raw virtio cache=none", "guest_journal_commit_seconds": 600,
+    "cut": "host SIGKILL of QEMU process after guest serial marker; no guest shutdown",
+    "limits": "guest crash semantics on this ext4 and virtual disk; host hardware remains powered",
+    "full_suite": false, "cases": @json.to_json(rows),
+  }
+  @fs.write_file(report_dir + "/result.json", report.stringify(indent=2) + "\n")
+  println(report.stringify(indent=2))
+}

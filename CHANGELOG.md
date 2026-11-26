@@ -2,6 +2,8 @@
 
 ## 0.3.0 — development source
 
+- Synchronize the Linux job directory at record publication. Add bounded compiler coverage feedback and isolated virtual power-cut checks.
+
 - Add bounded, same-origin Sitemap discovery from explicit XML or Robots declarations.
 - Add opt-in conditional recrawl and a first-match HTML field extraction adapter.
 - Stream CLI job recovery and checkpoint compaction through the page catalog.
