@@ -1,0 +1,57 @@
+[
+  {
+    "stage": "event_partial",
+    "recovered_consistently": true,
+    "termination": "SIGKILL_or_TerminateProcess"
+  },
+  {
+    "stage": "event_staged",
+    "recovered_consistently": true,
+    "termination": "SIGKILL_or_TerminateProcess"
+  },
+  {
+    "stage": "event_published",
+    "recovered_consistently": true,
+    "termination": "SIGKILL_or_TerminateProcess"
+  },
+  {
+    "stage": "shard_partial",
+    "recovered_consistently": true,
+    "termination": "SIGKILL_or_TerminateProcess"
+  },
+  {
+    "stage": "shard_staged",
+    "recovered_consistently": true,
+    "termination": "SIGKILL_or_TerminateProcess"
+  },
+  {
+    "stage": "shard_published",
+    "recovered_consistently": true,
+    "termination": "SIGKILL_or_TerminateProcess"
+  },
+  {
+    "stage": "checkpoint_partial",
+    "recovered_consistently": true,
+    "termination": "SIGKILL_or_TerminateProcess"
+  },
+  {
+    "stage": "checkpoint_staged",
+    "recovered_consistently": true,
+    "termination": "SIGKILL_or_TerminateProcess"
+  },
+  {
+    "stage": "checkpoint_published",
+    "recovered_consistently": true,
+    "termination": "SIGKILL_or_TerminateProcess"
+  },
+  {
+    "stage": "cleanup_started",
+    "recovered_consistently": true,
+    "termination": "SIGKILL_or_TerminateProcess"
+  },
+  {
+    "stage": "cleanup_removed",
+    "recovered_consistently": true,
+    "termination": "SIGKILL_or_TerminateProcess"
+  }
+]

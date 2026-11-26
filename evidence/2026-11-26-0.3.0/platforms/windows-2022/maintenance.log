@@ -1,0 +1,8 @@
+Total tests: 9, passed: 9, failed: 0.
+   Creating library D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\sitemap\sitemap.internal_test.lib and object D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\sitemap\sitemap.internal_test.exp
+   Creating library D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\storage\storage.internal_test.lib and object D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\storage\storage.internal_test.exp
+   Creating library D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\sitemap\sitemap.blackbox_test.lib and object D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\sitemap\sitemap.blackbox_test.exp
+   Creating library D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\engine\engine.internal_test.lib and object D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\engine\engine.internal_test.exp
+   Creating library D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\storage\storage.whitebox_test.lib and object D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\storage\storage.whitebox_test.exp
+   Creating library D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\storage\storage.blackbox_test.lib and object D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\storage\storage.blackbox_test.exp
+   Creating library D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\engine\engine.blackbox_test.lib and object D:\a\MoonCrawler\MoonCrawler\_build\native\debug\test\engine\engine.blackbox_test.exp

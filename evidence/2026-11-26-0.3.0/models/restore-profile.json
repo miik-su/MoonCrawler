@@ -1,0 +1,26 @@
+[
+  {
+    "probe": {
+      "mode": "full-restore",
+      "pages": 65,
+      "text_payload_bytes": 68157440,
+      "wall_elapsed_ms": "41643",
+      "retained_page_bodies": 65
+    },
+    "memory_bytes": "162549760",
+    "memory_method": "Windows PeakWorkingSet64",
+    "includes_runtime_and_buffers": true
+  },
+  {
+    "probe": {
+      "mode": "metadata",
+      "pages": 65,
+      "text_payload_bytes": 68157440,
+      "wall_elapsed_ms": "25327",
+      "retained_page_bodies": 0
+    },
+    "memory_bytes": "34856960",
+    "memory_method": "Windows PeakWorkingSet64",
+    "includes_runtime_and_buffers": true
+  }
+]

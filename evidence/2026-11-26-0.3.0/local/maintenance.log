@@ -1,0 +1,4 @@
+Total tests: 9, passed: 9, failed: 0.
+Blocking waiting for file lock \\?\<user>\Documents\ChatGPT\moonbit\MoonCrawler\_build\.moon-lock ...
+  正在创建库 <user>\Documents\ChatGPT\moonbit\MoonCrawler\_build\native\debug\test\sitemap\sitemap.internal_test.lib 和对象 <user>\Documents\ChatGPT\moonbit\MoonCrawler\_build\native\debug\test\sitemap\sitemap.internal_test.exp
+  正在创建库 <user>\Documents\ChatGPT\moonbit\MoonCrawler\_build\native\debug\test\sitemap\sitemap.blackbox_test.lib 和对象 <user>\Documents\ChatGPT\moonbit\MoonCrawler\_build\native\debug\test\sitemap\sitemap.blackbox_test.exp

@@ -8,7 +8,8 @@
 
 当前源码为 **0.3.0 开发版**，面向有明确站点授权范围的静态网页采集和离线内容处理。
 支持范围见[兼容矩阵](docs/compatibility.md)。各批验证按被测提交索引，包含三平台
-定向运行及历史合成负载数据。[验证记录](https://github.com/miik-su/MoonCrawler/blob/main/docs/verification.md)
+定向运行及历史合成负载数据。[0.3.0 三平台结果及模型](https://github.com/miik-su/MoonCrawler/tree/main/evidence/2026-11-26-0.3.0) ·
+[历次验证记录](https://github.com/miik-su/MoonCrawler/blob/main/docs/verification.md)
 
 ## 快速开始
 

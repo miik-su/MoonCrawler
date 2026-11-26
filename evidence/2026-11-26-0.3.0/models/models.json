@@ -1,0 +1,35 @@
+{
+  "source_revision": "18f0a4fe3c41a7158eafacce538f6a714686f8b7",
+  "source_dirty_at_start": false,
+  "platform": "Windows",
+  "fixtures": "synthetic HTML, 65 MiB of generated page text, isolated child processes",
+  "full_suite": false,
+  "checks": [
+    {
+      "command": [
+        "moon",
+        "run",
+        "tools/parser_profile.mbtx"
+      ],
+      "result_file": "parser-profile.json"
+    },
+    {
+      "command": [
+        "moon",
+        "run",
+        "tools/crash_probe.mbtx"
+      ],
+      "result_file": "crash.json"
+    },
+    {
+      "command": [
+        "moon",
+        "run",
+        "tools/storage_profile.mbtx",
+        "--",
+        "restore"
+      ],
+      "result_file": "restore-profile.json"
+    }
+  ]
+}

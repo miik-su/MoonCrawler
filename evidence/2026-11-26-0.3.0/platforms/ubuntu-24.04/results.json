@@ -1,0 +1,123 @@
+{
+  "source_revision": "18f0a4fe3c41a7158eafacce538f6a714686f8b7",
+  "source_dirty_at_start": false,
+  "platform": "Linux",
+  "workflow_run_id": "45753747891",
+  "toolchain": "moon 0.1.20261023 (3778465 2026-10-23) ~/.moon/bin/moon\nmoonc v0.10.17+d971670cd (2026-10-23) ~/.moon/bin/moonc\nmoonrun 0.1.20261023 (3778465 2026-10-23) ~/.moon/bin/moonrun\n\nFeature flags enabled: rr_moon_mod,rr_moon_pkg\n",
+  "full_suite": false,
+  "published": false,
+  "registry_install_tested": false,
+  "checks": [
+    {
+      "name": "check",
+      "command": [
+        "moon",
+        "check",
+        "--target",
+        "native",
+        "--deny-warn"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "542"
+    },
+    {
+      "name": "format",
+      "command": [
+        "moon",
+        "fmt",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "7"
+    },
+    {
+      "name": "interfaces",
+      "command": [
+        "moon",
+        "info",
+        "--target",
+        "native"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "532"
+    },
+    {
+      "name": "interface-diff",
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "--",
+        "*.mbti"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "4"
+    },
+    {
+      "name": "fetcher",
+      "command": [
+        "moon",
+        "test",
+        "fetcher/attack_test.mbt",
+        "fetcher/network_test.mbt",
+        "fetcher/headers_test.mbt",
+        "--target",
+        "native",
+        "--deny-warn"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "2158"
+    },
+    {
+      "name": "parser",
+      "command": [
+        "moon",
+        "test",
+        "parser/parser_test.mbt",
+        "parser/extreme_test.mbt",
+        "--target",
+        "native",
+        "--deny-warn"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "975"
+    },
+    {
+      "name": "maintenance",
+      "command": [
+        "moon",
+        "test",
+        "sitemap/sitemap_test.mbt",
+        "parser/selector_test.mbt",
+        "storage/streaming_test.mbt",
+        "engine/review_test.mbt",
+        "engine/wire_dns_test.mbt",
+        "--target",
+        "native",
+        "--deny-warn"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "3551"
+    },
+    {
+      "name": "cli",
+      "command": [
+        "moon",
+        "run",
+        "tools/cli_smoke.mbtx"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "5271"
+    },
+    {
+      "name": "package",
+      "command": [
+        "moon",
+        "run",
+        "tools/package_check.mbtx"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "7556"
+    }
+  ]
+}
