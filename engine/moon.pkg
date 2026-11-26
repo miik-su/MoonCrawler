@@ -11,6 +11,7 @@ import {
   "miik-su/mooncrawler/storage",
   "miik-su/mooncrawler/security",
   "miik-su/mooncrawler/retry",
+  "miik-su/mooncrawler/sitemap",
   "moonbitlang/async",
 }
 

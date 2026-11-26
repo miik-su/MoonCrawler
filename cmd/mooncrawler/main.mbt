@@ -1,7 +1,7 @@
 ///|
 fn usage() -> Unit {
   println(
-    "MoonCrawler 0.2.3\n  init CONFIG.json\n  validate CONFIG.json\n  crawl CONFIG.json JOBDIR SEED [SEED ...]\n  resume JOBDIR\n  pause JOBDIR\n  status JOBDIR\n  stats JOBDIR\n  export JOBDIR OUTPUT.jsonl",
+    "MoonCrawler 0.3.0\n  init CONFIG.json\n  validate CONFIG.json\n  crawl CONFIG.json JOBDIR SEED [SEED ...]\n  crawl-sitemap CONFIG.json JOBDIR SITEMAP_URL\n  crawl-robots CONFIG.json JOBDIR SITE_URL\n  recrawl CONFIG.json NEW_JOBDIR PREVIOUS_JOBDIR SEED [SEED ...]\n  resume JOBDIR\n  resume-recrawl JOBDIR PREVIOUS_JOBDIR\n  pause JOBDIR\n  status JOBDIR\n  stats JOBDIR\n  export JOBDIR OUTPUT.jsonl",
   )
 }
 
@@ -15,8 +15,8 @@ async fn config_file(path : String) -> @core.Config {
 }
 
 ///|
-async fn saved_job(directory : String) -> @storage.Snapshot {
-  guard @storage.read_snapshot(directory) is Some(saved) else {
+async fn saved_job(directory : String) -> (@storage.Snapshot, Int32) {
+  guard @storage.read_job_metadata(directory) is Some(saved) else {
     raise @core.Storage("no checkpoint in job directory")
   }
   saved
@@ -28,28 +28,48 @@ async fn crawl(
   directory : String,
   seeds : Array[String],
   resume_job : Bool,
+  discovery? : (String, Bool),
+  previous_job? : String,
 ) -> Unit {
   let store = @storage.FileStore::open(directory)
   defer store.close()
-  let adapter : &@storage.Storage = store
-  let saved = adapter.load()
-  if resume_job && saved is None {
+  let state = store.load_metadata()
+  if resume_job && state is None {
     raise @core.Storage("no checkpoint found in job directory")
   }
   let config = match config {
     Some(c) => c
     None =>
-      match saved {
-        Some(s) => s.config
+      match state {
+        Some((s, _)) => s.config
         None => raise @core.Storage("no checkpoint found in job directory")
       }
   }
-  if !resume_job && saved is Some(_) {
+  if !resume_job && state is Some(_) {
     raise @core.Invalid("job already exists; use resume or another directory")
   }
   let program = @env.get_env_var("MOONCRAWLER_CURL").unwrap_or("curl")
   let fetcher : @fetcher.CurlFetcher = { program, }
-  let engine = @engine.Engine::new(config, fetcher, store, snapshot?=saved)
+  let engine = @engine.Engine::new_streaming(config, fetcher, store, state?)
+  let previous = match previous_job {
+    Some(path) => Some(@storage.PageReader::open(path))
+    None => None
+  }
+  defer (if previous is Some(reader) { reader.close() })
+  if previous is Some(reader) {
+    engine.use_previous(reader, fetcher)
+  }
+  if discovery is Some((source, via_robots)) {
+    let added = if via_robots {
+      engine.discover_robots_sitemaps(source)
+    } else {
+      engine.discover_sitemap(source)
+    }
+    if added == 0 {
+      raise @core.Policy("no eligible Sitemap URLs")
+    }
+    println("queued \{added} Sitemap URLs")
+  }
   for seed in seeds {
     if !engine.seed(seed) {
       println("seed skipped by dedup/depth/filter/capacity")
@@ -60,8 +80,11 @@ async fn crawl(
   }
   engine.run(should_stop=() => @fs.exists(directory + "/pause"))
   println(
-    "saved \{engine.pages().length()} pages; succeeded=\{engine.frontier.count(Succeeded)} failed=\{engine.frontier.count(PermanentlyFailed)} pending=\{engine.frontier.count(Pending) + engine.frontier.count(RetryPending)}",
+    "saved \{engine.page_count()} pages; succeeded=\{engine.frontier.count(Succeeded)} failed=\{engine.frontier.count(PermanentlyFailed)} pending=\{engine.frontier.count(Pending) + engine.frontier.count(RetryPending)}",
   )
+  if @env.get_env_var("MOONCRAWLER_JSON_METRICS") == Some("1") {
+    println(engine.metrics().stringify())
+  }
 }
 
 ///|
@@ -95,6 +118,38 @@ async fn dispatch(args : Array[String]) -> Unit {
       }
       crawl(Some(config_file(args[2])), args[3], args[4:].to_owned(), false)
     }
+    "crawl-sitemap" | "crawl-robots" => {
+      guard args.length() == 5 else {
+        raise @core.Invalid("Sitemap crawl requires CONFIG.json JOBDIR URL")
+      }
+      crawl(
+        Some(config_file(args[2])),
+        args[3],
+        [],
+        false,
+        discovery=(args[4], args[1] == "crawl-robots"),
+      )
+    }
+    "recrawl" => {
+      guard args.length() >= 6 else {
+        raise @core.Invalid(
+          "recrawl requires CONFIG.json NEW_JOBDIR PREVIOUS_JOBDIR SEED",
+        )
+      }
+      crawl(
+        Some(config_file(args[2])),
+        args[3],
+        args[5:].to_owned(),
+        false,
+        previous_job=args[4],
+      )
+    }
+    "resume-recrawl" => {
+      guard args.length() == 4 else {
+        raise @core.Invalid("resume-recrawl requires JOBDIR PREVIOUS_JOBDIR")
+      }
+      crawl(None, args[2], [], true, previous_job=args[3])
+    }
     "resume" => {
       guard args.length() == 3 else {
         raise @core.Invalid("resume requires JOBDIR")
@@ -113,7 +168,7 @@ async fn dispatch(args : Array[String]) -> Unit {
       guard args.length() == 3 else {
         raise @core.Invalid("status/stats requires JOBDIR")
       }
-      let saved = saved_job(args[2])
+      let (saved, count) = saved_job(args[2])
       let counts : Map[String, Int32] = Map([])
       for task in saved.tasks {
         let state = @json.to_json(task.state).stringify()
@@ -122,7 +177,7 @@ async fn dispatch(args : Array[String]) -> Unit {
       let output : Map[String, Json] = {
         "version": @json.to_json(saved.version),
         "saved_at": @json.to_json(saved.saved_at),
-        "pages": @json.to_json(saved.pages.length()),
+        "pages": @json.to_json(count),
         "tasks": @json.to_json(counts),
       }
       if args[1] == "stats" {

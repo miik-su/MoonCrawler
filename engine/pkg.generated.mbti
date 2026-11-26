@@ -20,11 +20,18 @@ pub struct Engine {
   frontier : @frontier.Frontier
   // private fields
 }
+pub async fn Engine::discover_robots_sitemaps(Self, String) -> Int32
+pub async fn Engine::discover_sitemap(Self, String) -> Int32
+pub fn Engine::metrics(Self) -> Json
 pub fn Engine::new(@core.Config, &@fetcher.UnsafeFetcher, &@storage.Storage, parser? : &@parser.Parser, processors? : Array[&@pipeline.Processor], snapshot? : @storage.Snapshot) -> Self raise @core.CrawlError
+pub fn Engine::new_streaming(@core.Config, &@fetcher.UnsafeFetcher, @storage.FileStore, state? : (@storage.Snapshot, @core.PageLedger)) -> Self raise @core.CrawlError
+pub fn Engine::page_count(Self) -> Int32
 pub fn Engine::pages(Self) -> Array[@core.Page]
 pub async fn Engine::run(Self, should_stop? : async () -> Bool) -> Unit
 pub fn Engine::seed(Self, String) -> Bool raise
 pub fn Engine::snapshot(Self) -> @storage.Snapshot
+pub fn Engine::use_previous(Self, @storage.PageReader, @fetcher.CurlFetcher) -> Unit raise @core.CrawlError
+pub async fn Engine::visit_pages(Self, async (@core.Page) -> Unit) -> Unit
 
 // Type aliases
 

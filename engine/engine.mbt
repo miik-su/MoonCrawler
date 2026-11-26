@@ -14,10 +14,12 @@ pub struct Engine {
   priv processors : Array[&@pipeline.Processor]
   priv pages : Map[String, @core.Page]
   priv changed_pages : Map[String, @core.Page]
+  priv streaming : @storage.FileStore?
+  priv ledger : @core.PageLedger
+  priv transfers : Transfers
+  priv mut previous : (@storage.PageReader, @fetcher.CurlFetcher)?
   priv mut checkpoint_count : Int32
   priv mut initialized : Bool
-  priv mut page_bytes : Int32
-  priv mut metadata_bytes : Int32
   priv mut stopped : Bool
 }
 
@@ -42,14 +44,11 @@ pub fn Engine::new(
     }
   }
   let pages : Map[String, @core.Page] = Map([])
-  let mut page_bytes = 0
-  let mut metadata_bytes = 0
+  let ledger = @core.PageLedger::new()
   if snapshot is Some(s) {
+    ledger.commit(config, s.pages)
     for page in s.pages {
       pages[page.url] = page
-      let (size, meta) = @core.validate_page(config, page)
-      page_bytes += size
-      metadata_bytes += meta
     }
   }
   {
@@ -67,10 +66,12 @@ pub fn Engine::new(
     processors,
     pages,
     changed_pages: {},
+    streaming: None,
+    ledger,
+    transfers: Transfers::new(),
+    previous: None,
     checkpoint_count: 0,
     initialized: snapshot is Some(_),
-    page_bytes,
-    metadata_bytes,
     stopped: false,
   }
 }
@@ -86,11 +87,14 @@ pub fn Engine::seed(self : Engine, url : String) -> Bool raise {
 }
 
 ///|
+/// Pages retained by the default constructor. Streaming engines should use
+/// page_count() or visit_pages() after run returns.
 pub fn Engine::pages(self : Engine) -> Array[@core.Page] {
   self.pages.values().to_array()
 }
 
 ///|
+/// A complete snapshot in retained mode, or metadata only in streaming mode.
 pub fn Engine::snapshot(self : Engine) -> @storage.Snapshot {
   {
     version: 1,
@@ -115,7 +119,11 @@ async fn Engine::checkpoint(self : Engine) -> Unit {
   self.checkpoint_count += 1
   if self.checkpoint_count % 100 == 0 {
     self.scheduler.prune(@async.now())
-    self.store.save(self.snapshot())
+    if self.streaming is Some(store) {
+      store.compact()
+    } else {
+      self.store.save(self.snapshot())
+    }
   }
 }
 
@@ -123,7 +131,8 @@ async fn Engine::checkpoint(self : Engine) -> Unit {
 async fn Engine::send(
   self : Engine,
   url : @url.Url,
-  robots_request~ : Bool = false,
+  body_limit? : Int32,
+  validators? : (@fetcher.CurlFetcher, Map[String, String]),
 ) -> @core.Response {
   @security.check_url(url, self.config)
   if (self.stop_requested)() {
@@ -136,19 +145,35 @@ async fn Engine::send(
     @async.sleep(25)
   }
   defer self.scheduler.release(url.host)
+  let started = @clock.tick_ms()
+  self.transfers.started += 1
+  self.transfers.active += 1
+  errdefer {
+    self.transfers.failed += 1
+  }
+  defer {
+    self.transfers.active -= 1
+    self.transfers.elapsed_ms += (@clock.tick_ms() - started).max(0L)
+  }
   // Even custom transports must satisfy the complete-hop timeout contract.
-  @async.with_timeout(self.config.timeout_ms, () => {
-    let config = if robots_request {
-      { ..self.config, max_body_bytes: self.config.max_robots_bytes, }
-    } else {
-      self.config
+  let response = @async.with_timeout(self.config.timeout_ms, () => {
+    let config = match body_limit {
+      Some(n) => { ..self.config, max_body_bytes: n, }
+      None => self.config
     }
-    let response = self.fetcher.fetch(url, config)
+    let response = match validators {
+      Some((curl, headers)) => curl.request(url, config, headers~)
+      None => self.fetcher.fetch(url, config)
+    }
     if response.url != url {
       raise @core.Protocol("adapter violated single-hop response URL contract")
     }
     response
   })
+  if response.status >= 400 {
+    self.transfers.failed += 1
+  }
+  response
 }
 
 ///|
@@ -175,7 +200,10 @@ async fn Engine::allowed_by_robots(self : Engine, url : @url.Url) -> Bool {
       let mut target = @url.parse(url.origin() + "/robots.txt")
       let response : @core.Response? = try {
         for hops = 0; ; hops = hops + 1 {
-          let response = self.send(target, robots_request=true)
+          let response = self.send(
+            target,
+            body_limit=self.config.max_robots_bytes,
+          )
           if [301, 302, 303, 307, 308].contains(response.status) &&
             hops < self.config.max_robots_redirects {
             guard response.headers.get("location") is Some(location) else {
@@ -232,7 +260,7 @@ async fn Engine::execute(self : Engine, lease : @core.Task) -> Unit {
     @url.parse(lease.redirect_url)
   }
   let visited : Map[String, Bool] = Map([])
-  let response = for hops = lease.redirect_hops; ; hops = hops + 1 {
+  let (response, cached) = for hops = lease.redirect_hops; ; hops = hops + 1 {
     if !self.config.accepts({ ..lease.request, url: target, }) {
       raise @core.Policy("redirect target rejected by crawl policy")
     }
@@ -244,7 +272,7 @@ async fn Engine::execute(self : Engine, lease : @core.Task) -> Unit {
     if !self.allowed_by_robots(target) {
       raise @core.RobotsDenied
     }
-    let response = self.send(target)
+    let (response, cached) = self.fetch_page(target)
     if [301, 302, 303, 307, 308].contains(response.status) {
       if hops >= self.config.max_redirects {
         raise @core.Protocol("redirect limit exceeded")
@@ -273,7 +301,7 @@ async fn Engine::execute(self : Engine, lease : @core.Task) -> Unit {
       )
       return
     } else {
-      break response
+      break (response, cached)
     }
   }
   if @retry.retryable(response.status) {
@@ -295,37 +323,41 @@ async fn Engine::execute(self : Engine, lease : @core.Task) -> Unit {
     )
     return
   }
-  if response.status == 304 {
+  if response.status == 304 && cached is None {
     raise @core.Protocol("unsolicited 304: Engine sent no conditional request")
   }
   if response.status == 204 {
     self.frontier.complete(lease)
     return
   }
-  if response.status < 200 || response.status >= 300 {
+  if response.status != 304 && (response.status < 200 || response.status >= 300) {
     raise @core.Protocol("HTTP \{response.status}")
   }
-  let page = self.parser.parse(response)
-  let processed = @pipeline.run(page, self.processors)
+  let processed = if response.status == 304 {
+    self.transfers.revalidated += 1
+    cached
+  } else {
+    self.transfers.fetched += 1
+    @pipeline.run(self.parser.parse(response), self.processors)
+  }
   // Link discovery and page insertion occur before completing the task and snapshotting.
   // Filtered pages also suppress discovery, making pipeline rejection predictable.
   if processed is Some(page) {
     if page.url != response.url.key() {
       raise @core.Protocol("processor changed page identity")
     }
-    let (size, meta) = @core.validate_page(self.config, page)
-    let (old_size, old_meta) = match self.pages.get(page.url) {
-      Some(old) => @core.validate_page(self.config, old)
-      None => (0, 0)
+    if response.status != 304 {
+      save_validators(page, response)
+      if cached is Some(old) &&
+        page.metadata.get(fingerprint_key) is Some(hash) &&
+        old.metadata.get(fingerprint_key) == Some(hash) {
+        self.transfers.identical += 1
+      }
     }
-    if self.page_bytes - old_size + size > self.config.max_total_page_bytes ||
-      self.metadata_bytes - old_meta + meta >
-      self.config.max_total_metadata_bytes {
-      raise @core.Capacity("aggregate page budget reached")
+    self.ledger.commit(self.config, [page])
+    if self.streaming is None {
+      self.pages[page.url] = page
     }
-    self.page_bytes = self.page_bytes - old_size + size
-    self.metadata_bytes = self.metadata_bytes - old_meta + meta
-    self.pages[page.url] = page
     self.changed_pages[page.url] = page
     let nofollow = page.metadata.get("robots").unwrap_or("").to_lower()
     if !nofollow.contains("nofollow") && !nofollow.contains("none") {
@@ -425,7 +457,11 @@ pub async fn Engine::run(
   self.stopped = false
   self.stop_requested = should_stop
   if !self.initialized {
-    if self.store.load() is Some(_) {
+    let existing = match self.streaming {
+      Some(store) => store.load_metadata() is Some(_)
+      None => self.store.load() is Some(_)
+    }
+    if existing {
       raise @core.Storage("existing job requires an explicitly loaded snapshot")
     }
     self.store.save(self.snapshot())
