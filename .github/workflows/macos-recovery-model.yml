@@ -1,4 +1,4 @@
-name: macOS recovery model (Intel)
+name: macOS recovery model (arm64)
 on:
   push:
     paths:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 jobs:
   recovery-model:
-    runs-on: macos-15-intel
+    runs-on: macos-26
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
