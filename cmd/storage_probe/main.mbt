@@ -21,7 +21,17 @@ async fn main {
     return
   }
   let start = @env.now()
-  let (count, batch) = if args[1] == "catalog" {
+  let (count, batch) = if args[1] == "metadata" {
+    let store = @storage.FileStore::open(dir + "/job")
+    defer store.close()
+    let (state, ledger) = store.load_metadata().unwrap()
+    (ledger.count(), state.pages.length())
+  } else if args[1] == "full-restore" {
+    let store = @storage.FileStore::open(dir + "/job")
+    defer store.close()
+    let saved = store.load().unwrap()
+    (saved.pages.length(), saved.pages.length())
+  } else if args[1] == "catalog" {
     let reader = @storage.PageReader::open(dir + "/job")
     defer reader.close()
     (reader.export_jsonl(dir + "/catalog.jsonl"), reader.max_batch_pages())
@@ -39,8 +49,15 @@ async fn main {
     "mode": @json.to_json(args[1]),
     "pages": @json.to_json(count),
     "text_payload_bytes": 68157440,
-    "max_batch_pages": @json.to_json(batch),
     "wall_elapsed_ms": @json.to_json(@env.now() - start),
+  }
+  if report is Object(fields) {
+    let field = if args[1] == "metadata" || args[1] == "full-restore" {
+      "retained_page_bodies"
+    } else {
+      "max_batch_pages"
+    }
+    fields[field] = @json.to_json(batch)
   }
   @fs.write_file(dir + "/ready.json", report.stringify())
   while !@fs.exists(dir + "/release") {

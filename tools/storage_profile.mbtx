@@ -2,17 +2,21 @@
 import {
   "moonbitlang/async@0.22.5", "moonbitlang/async@0.22.5/fs", "moonbitlang/async@0.22.5/shell",
   "moonbitlang/async@0.22.5/process", "moonbitlang/core/json", "moonbitlang/core/string",
+  "moonbitlang/core/env",
 }
 ----
 async fn main {
   let build = @shell.Cmd("moon", ["build", "cmd/storage_probe", "--target", "native", "--debug"]).output()
   build.check()
-  let program = "_build/native/debug/build/cmd/storage_probe/storage_probe.exe"
+  let program = "_build/native/debug/build/cmd/storage_probe/storage_probe" +
+    (if @async.platform is Windows { ".exe" } else { "" })
+  let restore = @env.args().contains("restore")
+  let modes = if restore { ["full-restore", "metadata"] } else { ["full", "catalog"] }
   let dir = @fs.tmpdir(prefix="crawler-storage-profile-")
   defer @fs.rmdir(dir, recursive=true)
   @shell.Cmd(program, ["init", dir]).run(timeout_ms=120000)
   let rows : Array[Json] = []
-  for mode in ["full", "catalog"] {
+  for mode in modes {
     let row : Json = @async.with_timeout(120000, () => @async.with_task_group(group => {
       let child = @process.spawn(group, program, [mode, dir], no_wait=true, no_console_window=true, cancel_handler=@process.hard_cancel())
       while !@fs.exists(dir + "/ready.json") { @async.sleep(10) }
@@ -44,7 +48,7 @@ async fn main {
     rows.push(row)
   }
   // Count complete records without constructing the aggregate output string.
-  for mode in ["full", "catalog"] {
+  for mode in (if restore { [] } else { modes }) {
     let file = @fs.open(dir + "/" + mode + ".jsonl", mode=ReadOnly)
     defer file.close()
     let mut lines = 0

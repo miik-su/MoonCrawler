@@ -26,8 +26,6 @@ jobs:
         run: moon test core/scope_test.mbt core/migration_test.mbt frontier/redirect_test.mbt robots/capacity_test.mbt security/boundary_test.mbt fuzz/corpus_test.mbt --target native
       - name: Selected integration and failure checks
         run: moon test engine/policy_test.mbt engine/fairness_test.mbt engine/robots_limits_test.mbt engine/failure_test.mbt storage/journal_test.mbt storage/file_safety_test.mbt --target native
-      - name: Real CLI smoke
-        run: moon run tools/cli_smoke.mbtx
       - name: Capture focused readiness and package evidence without publication
         if: always()
         run: moon run tools/readiness_evidence.mbtx

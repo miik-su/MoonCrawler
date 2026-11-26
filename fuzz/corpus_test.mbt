@@ -33,5 +33,28 @@ test "bounded deterministic URL Robots and HTTP mutation corpus" {
     } noraise {
       _ => ()
     }
+    let target = @url.parse("https://example.com/")
+    let prefix = "<urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'><url><loc>"
+    let suffix = "</loc></url></urlset>"
+    let document = try @sitemap.parse(prefix + text + suffix) catch {
+      _ => None
+    } noraise {
+      doc => Some(doc)
+    }
+    if document is Some(doc) {
+      assert_true(doc.locations.length() <= 1)
+    }
+    try
+      @parser.extract({
+        url: target,
+        status: 200,
+        headers: { "content-type": "text/html" },
+        body: "<main><a title='" + text + "'>example</a></main>",
+      })
+    catch {
+      _ => ()
+    } noraise {
+      page => assert_eq(page.url, target.key())
+    }
   }
 }

@@ -1,0 +1,46 @@
+----
+import {
+  "moonbitlang/async@0.22.5",
+  "moonbitlang/async@0.22.5/fs",
+  "moonbitlang/async@0.22.5/shell",
+  "moonbitlang/core/json",
+}
+----
+
+async fn command(args : Array[String]) -> String {
+  let result = @shell.Cmd(args[0], args[1:].to_owned()).output(
+    timeout_ms=300000, max_output_bytes=1048576,
+  )
+  result.check()
+  result.stdout().trim().to_owned()
+}
+
+async fn main {
+  let revision = command(["git", "rev-parse", "HEAD"])
+  let dirty = !command(["git", "status", "--porcelain"]).is_empty()
+  let rows : Array[Json] = []
+  let dir = "_build/readiness-models"
+  @fs.mkdir(dir, recursive=true, allow_exist=true)
+  let jobs = [
+    ("parser-profile", ["moon", "run", "tools/parser_profile.mbtx"]),
+    ("crash", ["moon", "run", "tools/crash_probe.mbtx"]),
+    ("restore-profile", ["moon", "run", "tools/storage_profile.mbtx", "--", "restore"]),
+  ]
+  for (name, args) in jobs {
+    let result = @json.parse(command(args))
+    let path = name + ".json"
+    @fs.write_file(dir + "/" + path, result.stringify(indent=2) + "\n")
+    rows.push({"command": @json.to_json(args), "result_file": @json.to_json(path)})
+  }
+  let platform = match @async.platform { Windows => "Windows"; Linux => "Linux"; MacOS => "macOS" }
+  let report : Json = {
+    "source_revision": @json.to_json(revision),
+    "source_dirty_at_start": @json.to_json(dirty),
+    "platform": @json.to_json(platform),
+    "fixtures": "synthetic HTML, 65 MiB of generated page text, isolated child processes",
+    "full_suite": false,
+    "checks": @json.to_json(rows),
+  }
+  @fs.write_file(dir + "/models.json", report.stringify(indent=2) + "\n")
+  println("Maintenance model results recorded for " + revision)
+}

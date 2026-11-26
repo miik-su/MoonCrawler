@@ -31,7 +31,7 @@ async fn main {
   let archive = root + "/" + archive_path
   let list = if @async.platform is Windows { ["tar", "-tf", archive] } else { ["unzip", "-Z1", archive] }
   let entries = command(list).split("\n").map(p => p.trim().to_owned().replace_all(old="\\", new="/")).filter(p => !p.is_empty()).to_array()
-  let required = ["moon.mod", "README.md", "LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md", "SECURITY.md", "core/models.mbt", "engine/engine.mbt", "storage/reader.mbt", "examples/offline/main.mbt", "cmd/mooncrawler/main.mbt", "docs/contracts.md", "docs/user-guide.md", "docs/source-provenance.md"]
+  let required = ["moon.mod", "README.md", "LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md", "SECURITY.md", "core/models.mbt", "engine/engine.mbt", "storage/reader.mbt", "storage/streaming.mbt", "sitemap/sitemap.mbt", "parser/selector.mbt", "examples/offline/main.mbt", "cmd/mooncrawler/main.mbt", "docs/contracts.md", "docs/user-guide.md", "docs/source-provenance.md"]
   for path in required { assert_true(entries.contains(path)) }
   let excluded = [".git/", ".github/", "_build/", ".mooncakes/", "evidence/", "tools/", "cmd/evidence/", "cmd/parser_probe/", "cmd/recovery_probe/", "cmd/storage_probe/", "fuzz/"]
   for path in entries {
@@ -44,10 +44,12 @@ async fn main {
   let unpack = if @async.platform is Windows { ["tar", "-xf", archive, "-C", directory] } else { ["unzip", "-q", archive, "-d", directory] }
   ignore(command(unpack))
   ignore(command(["moon", "check", "--target", "native", "--deny-warn"], cwd=directory))
+  let usage = command(["moon", "run", "cmd/mooncrawler", "--target", "native", "--quiet", "--", "help"], cwd=directory)
+  assert_eq(usage.split("\n").next().unwrap_or("").trim().to_owned(), "MoonCrawler " + version)
   let example = command(["moon", "run", "examples/offline", "--target", "native", "--quiet"], cwd=directory)
   let pages = example.split("\n").filter(p => p.has_prefix("{")).to_array()
   assert_eq(pages.length(), 2)
   for page in pages { @json.parse(page.to_owned()) |> ignore }
-  let report : Json = {"archive": @json.to_json(archive_path), "module": @json.to_json(name), "version": @json.to_json(version), "packaged_files": @json.to_json(entries.length()), "required_entries_present": true, "excluded_entries_absent": true, "extracted_native_check": "passed with deny-warn", "extracted_offline_pages": 2, "published": false, "registry_install_tested": false, "files": @json.to_json(entries)}
+  let report : Json = {"archive": @json.to_json(archive_path), "module": @json.to_json(name), "version": @json.to_json(version), "packaged_files": @json.to_json(entries.length()), "required_entries_present": true, "excluded_entries_absent": true, "extracted_native_check": "passed with deny-warn", "cli_version_matches_manifest": true, "extracted_offline_pages": 2, "published": false, "registry_install_tested": false, "files": @json.to_json(entries)}
   println(report.stringify(indent=2))
 }

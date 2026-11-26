@@ -3,6 +3,8 @@ import {
   "miik-su/mooncrawler/robots",
   "miik-su/mooncrawler/fetcher",
   "miik-su/mooncrawler/core",
+  "miik-su/mooncrawler/parser",
+  "miik-su/mooncrawler/sitemap",
   "moonbitlang/core/encoding/utf8",
 } for "test"
 

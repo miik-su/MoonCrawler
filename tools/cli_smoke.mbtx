@@ -28,22 +28,36 @@ async fn main {
   assert_true(cli(["validate", dir + "/config.json"]).contains("valid"))
   let server = @http.Server(@socket.Addr::parse("127.0.0.1:0"))
   defer server.close()
+  let url = "http://127.0.0.1:\{server.addr.port()}/"
+  let ns = " xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'"
   let requests : Array[String] = []
+  let mut revalidated = 0
   @async.with_task_group(group => {
     let serving = group.spawn(() => {
       server.run_forever((request, _reader, conn) => {
         requests.push(request.path)
+        if request.path == "/" && request.headers.get("If-None-Match") == Some("\"home-1\"") {
+          assert_eq(request.headers.get("If-Modified-Since"), Some("Sat, 01 Jan 2000 00:00:00 GMT"))
+          revalidated += 1
+          conn.send_response(304, "Not Modified", extra_headers={"ETag": "\"home-1\""})
+          conn.end_response()
+          return
+        }
         let body = match request.path {
-          "/robots.txt" => "User-agent: *\nDisallow: /private"
+          "/robots.txt" => "User-agent: *\nDisallow: /private\nDisallow: /maps/blocked\nSitemap: " + url + "sitemap.xml"
+          "/sitemap.xml" => "<sitemapindex" + ns + "><sitemap><loc>" + url + "maps/urls.xml</loc></sitemap></sitemapindex>"
+          "/maps/urls.xml" => "<urlset" + ns + "><url><loc>" + url + "maps/page</loc></url><url><loc>" + url + "maps/page</loc></url><url><loc>" + url + "maps/blocked</loc></url><url><loc>" + url + "outside</loc></url><url><loc>https://example.com/page</loc></url></urlset>"
           "/" => "<title>CLI Home</title><a href='/next'>next</a><a href='/private'>private</a><a href='/'>cycle</a>"
           _ => "<title>CLI Next</title><p>中文</p>"
         }
-        conn.send_response(200, "OK", extra_headers={"Content-Type": "text/html; charset=utf-8"})
+        let headers : Map[@http.CaseInsensitiveString, String] = if request.path == "/" {
+          {"Content-Type": "text/html; charset=utf-8", "ETag": "\"home-1\"", "Last-Modified": "Sat, 01 Jan 2000 00:00:00 GMT"}
+        } else { {"Content-Type": "text/html; charset=utf-8"} }
+        conn.send_response(200, "OK", extra_headers=headers)
         conn.write(body)
         conn.end_response()
       })
     }, no_wait=true)
-    let url = "http://127.0.0.1:\{server.addr.port()}/"
     let result = cli(["crawl", dir + "/config.json", dir + "/job", url])
     assert_true(result.contains("saved 2 pages"))
     assert_false(requests.contains("/private"))
@@ -53,7 +67,22 @@ async fn main {
     assert_true(cli(["status", dir + "/job"]).contains("pages"))
     ignore(cli(["export", dir + "/job", dir + "/pages.jsonl"]))
     assert_eq(@fs.read_file(dir + "/pages.jsonl").text().split("\n").count(), 3)
+    let revised = cli(["recrawl", dir + "/config.json", dir + "/revised", dir + "/job", url])
+    assert_true(revised.contains("saved 2 pages"))
+    assert_eq(revalidated, 1)
+    ignore(cli(["export", dir + "/revised", dir + "/revised.jsonl"]))
+    let old = @fs.read_file(dir + "/pages.jsonl").text().split("\n").map(s => s.to_owned()).to_array()
+    let current = @fs.read_file(dir + "/revised.jsonl").text().split("\n").map(s => s.to_owned()).to_array()
+    old.sort()
+    current.sort()
+    assert_eq(current, old)
+    let discovered = cli(["crawl-robots", dir + "/config.json", dir + "/discovered", url])
+    assert_true(discovered.contains("queued 2 Sitemap URLs"))
+    assert_true(discovered.contains("saved 1 pages"))
+    assert_true(requests.contains("/maps/page"))
+    assert_false(requests.contains("/maps/blocked"))
+    assert_false(requests.contains("/outside"))
     serving.cancel()
   })
-  println("CLI smoke passed: init validate crawl robots dedup resume status export (real HTTP, 2 pages)")
+  println("CLI smoke passed: crawl/resume/export 2 pages; conditional GET 304 preserved output; Robots Sitemap saved 1 allowed page")
 }

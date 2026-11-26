@@ -8,7 +8,8 @@ import {
 async fn main {
   let build = @shell.Cmd("moon", ["build", "cmd/recovery_probe", "--target", "native", "--debug"]).output()
   build.check()
-  let program = "_build/native/debug/build/cmd/recovery_probe/recovery_probe.exe"
+  let program = "_build/native/debug/build/cmd/recovery_probe/recovery_probe" +
+    (if @async.platform is Windows { ".exe" } else { "" })
   let rows : Array[Json] = []
   for stage in ["event_partial", "event_staged", "event_published", "shard_partial", "shard_staged", "shard_published", "checkpoint_partial", "checkpoint_staged", "checkpoint_published", "cleanup_started", "cleanup_removed"] {
     let dir = @fs.tmpdir(prefix="crawler-kill-")

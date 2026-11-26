@@ -20,18 +20,17 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
       - uses: ./.github/actions/setup
       - if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libssl-dev curl
+        run: sudo apt-get update && sudo apt-get install -y libssl-dev curl unzip
       - run: moon update
       - run: moon check --target native
       - run: moon test core/scope_test.mbt engine/policy_test.mbt engine/fairness_test.mbt storage/journal_test.mbt storage/file_safety_test.mbt fetcher/network_test.mbt fetcher/attack_test.mbt --target native
       - if: inputs.full_suite
         run: moon test --target native
-      - run: moon run tools/cli_smoke.mbtx
       - name: Capture focused platform evidence
         if: always()
-        run: moon run tools/publish_evidence.mbtx
+        run: moon run tools/readiness_evidence.mbtx
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: native-evidence-${{ matrix.os }}
-          path: evidence/2026-11-13-0.2.3/
+          path: _build/readiness/

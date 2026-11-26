@@ -8,11 +8,13 @@ async fn main {
   let build = @shell.Cmd("moon", ["build", "cmd/parser_probe", "--target", "native", "--debug"]).output()
   build.check()
   let rows : Array[Json] = []
+  let program = "_build/native/debug/build/cmd/parser_probe/parser_probe" +
+    (if @async.platform is Windows { ".exe" } else { "" })
   for fixture in ["nested", "malformed", "long_attribute", "entities"] {
     let dir = @fs.tmpdir(prefix="crawler-parser-profile-")
     defer @fs.rmdir(dir, recursive=true)
     let row : Json = @async.with_timeout(30000, () => @async.with_task_group(group => {
-      let child = @process.spawn(group, "_build/native/debug/build/cmd/parser_probe/parser_probe.exe", [fixture, dir], no_wait=true, no_console_window=true, cancel_handler=@process.hard_cancel())
+      let child = @process.spawn(group, program, [fixture, dir], no_wait=true, no_console_window=true, cancel_handler=@process.hard_cancel())
       while !@fs.exists(dir + "/ready.json") { @async.sleep(10) }
       let data = @json.parse(@fs.read_file(dir + "/ready.json").text())
       let (bytes, measurement) : (Int64, String) = match @async.platform {

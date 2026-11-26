@@ -32,7 +32,7 @@ async fn main {
     }
   })
   defer store.close()
-  store.load() |> ignore
+  store.load_metadata() |> ignore
   let frontier = @frontier.Frontier::new(config)
   frontier.enqueue(
     {
@@ -56,11 +56,5 @@ async fn main {
     metadata: {},
   }
   store.commit_batch(config, frontier.snapshot(), [page], 1L)
-  store.save({
-    version: 1,
-    config,
-    tasks: frontier.snapshot(),
-    pages: [page],
-    saved_at: 1L,
-  })
+  store.compact()
 }
