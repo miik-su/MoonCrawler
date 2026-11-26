@@ -5,6 +5,7 @@ Frontier, Scheduler, Robots, Parser and Storage can be imported independently.
 
 ```text
 CLI / API -> Engine -> Frontier (URL index + priority heap + delayed heap)
+                  -> optional Sitemap discovery -> bounded frontier seeds
                   -> Robots cache -> Scheduler -> Fetcher (one hop)
                   -> Parser -> Processor[] -> page upsert
                   -> Storage.commit_batch(changed tasks + pages) -> journal
@@ -44,6 +45,14 @@ exhausted. Successful tasks remain completed. Requests are at-least-once; pages
 are keyed by canonical final URL. A request may execute twice after a crash.
 There is no claim of exactly-once networking or power-loss durability of directory metadata.
 
+The CLI uses the streaming FileStore constructor. Restore validates one bounded
+record at a time, keeps task metadata, page identities and sizes, and discards
+committed bodies. Compaction reads the latest pages from the catalog into bounded
+new shards, publishes their index, then reclaims old records. For library
+callers, the original `Engine::new` retains page bodies; with
+`Engine::new_streaming` use `page_count` or `visit_pages` after the run.
+Its synchronous snapshot is metadata only and must not replace a full job snapshot.
+
 ## Network boundaries
 
 Before each page hop, the engine applies host policy, checks Robots for its
@@ -55,6 +64,9 @@ IPv4 using `--resolve`, retaining the original TLS/SNI hostname. Automatic
 redirects, glob expansion, ambient proxies, credentials and curlrc are disabled.
 Timeouts and output/decompressed-body limits bound each call. A custom Fetcher
 must implement the same DNS/connect safety contract.
+Explicit recrawl uses the same scheduled CurlFetcher path for validation
+headers and opens a separate prior job as a stable page reader. Requests without
+a known validator remain unconditional.
 
 ## Extension points
 

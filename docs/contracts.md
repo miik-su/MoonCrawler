@@ -7,7 +7,8 @@
 | 站点访问和数据 | 操作者负责确认访问与再利用权限、遵守网站条款并保护 URL、正文及导出数据。[使用指引](acceptable-use.md) |
 | Robots | 遵循已实现的规则匹配与缓存策略。公网站点跳转仍受主机授权、连接目标和降级限制。Robots 规则不授予访问权限。[RFC 9309](https://www.rfc-editor.org/rfc/rfc9309.html) |
 | HTTP | 默认路径使用固定 IPv4 目标的 curl 传输，逐跳检查重定向。HTML 提取要求 `text/html` 或 `application/xhtml+xml`，后者也交给 HTML5 提取器。[RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html) |
-| 恢复与资源 | 单进程作业，存储和解析有独立预算。Reader 按需导出，Engine 仍保留页面。进程中断证据对应特定恢复阶段，停电持久性尚待验证。[兼容矩阵](compatibility.md) |
+| Sitemap 与重抓 | 显式启用同源 Sitemap 发现和有界索引。重抓复用上一轮同一 URL 的验证器，仍执行范围、Robots 和连接策略。[使用指南](user-guide.md) |
+| 恢复与资源 | 单进程作业，存储和解析有独立预算。CLI 以目录索引恢复，逐记录压缩与导出。常规库模式仍保留页面。进程中断证据对应特定恢复阶段，停电持久性尚待验证。[兼容矩阵](compatibility.md) |
 | 扩展与运维 | 自定义 UnsafeFetcher、Parser、Processor、Storage、作业目录和指定的 curl 可执行文件来自可信管理者。项目不提供插件沙箱或 SLA。[安全策略](../SECURITY.md) |
 | 数据模型与样本 | `Request`、`Task`、`Page` 为项目数据结构。队列、DNS、TLS、HTML 与存储模型使用合成或本地夹具，项目未分发 AI 模型权重。[来源清单](source-provenance.md) |
 

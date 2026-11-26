@@ -2,13 +2,25 @@
 
 ## Current maintenance checks
 
-See the [2026-11-20 maintenance evidence](../evidence/2026-11-20-maintenance/README.md).
+The [0.3.0 maintenance model and focused evidence](https://github.com/miik-su/MoonCrawler/tree/main/evidence/2026-11-26-0.3.0)
+cover the Sitemap and selector profile, conditional CLI round trip, streamed
+compaction interruption, HTML fixtures and separate-process restore comparison.
+See the [2026-11-20 historical maintenance evidence](../evidence/2026-11-20-maintenance/README.md).
 The [focused workflow](https://github.com/miik-su/MoonCrawler/actions/workflows/focused.yml)
 records source SHA and target platform in artifacts under `_build/readiness`.
 Run `moon run tools/readiness_evidence.mbtx` from the checkout to reproduce
 the compiler, formatting, API, transport, parser and archive checks. The
 workflow additionally checks selected queue, policy, storage and CLI paths.
-The parser group includes the media type match and structure budget cases.
+The parser group includes media types and structure budgets; the deterministic
+mutation group covers URL, Robots, response headers, Sitemap and HTML.
+
+Model commands (local processes and synthetic data):
+
+```sh
+moon run tools/storage_profile.mbtx -- restore
+moon run tools/parser_profile.mbtx
+moon run tools/crash_probe.mbtx
+```
 
 The saved 65 MiB storage and 100K-task models use synthetic inputs. Their
 reports retain the measured source, workload, platform and limits. A current
@@ -34,7 +46,8 @@ preserve the exact source revision. Windows has no TLS-server fixture claim.
 See [new evidence](../evidence/2026-11-13-0.2.3/README.md) for ten focused groups,
 actual UDP DNS A records with TTL=0 and a real curl/HTTP redirect, eleven forced
 process-kill stages and a 65 MiB full-restore versus catalog-export comparison.
-Reproduce using `moon run tools/publish_evidence.mbtx 2026-11-13-0.2.3`.
+Reproduce from the historical source recorded in that report using
+`moon run tools/publish_evidence.mbtx 2026-11-13-0.2.3`.
 The automatic focused workflow now targets all three operating systems. Its
 platform results/artifacts are authoritative for what actually ran; no full suite
 was requested or invoked. macOS memory values are sampled RSS rather than peaks.

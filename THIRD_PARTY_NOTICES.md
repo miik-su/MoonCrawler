@@ -24,6 +24,7 @@ Architectural references (concepts only):
   [Middleware reference](https://github.com/scrapy/scrapy/blob/master/docs/topics/downloader-middleware.rst):
   separate retry, redirect and Robots policies. Conceptual reference only; no Python source ported.
 - [RFC 9309](https://www.rfc-editor.org/rfc/rfc9309.html): Robots group selection, rules and caching; see our documented profile.
+- [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html#section-13) and the [Sitemaps protocol](https://www.sitemaps.org/protocol.html): behavior references for the conditional request and XML-discovery profiles. Implementations and loopback fixtures are authored in this repository.
 - [MoonBit HTML5 parser](https://github.com/moonbit-community/html5-mbt): reused through an extraction adapter.
 
 See [compatibility](docs/compatibility.md) for verified scope.

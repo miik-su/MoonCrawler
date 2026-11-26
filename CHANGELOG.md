@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 — development source
+
+- Add bounded, same-origin Sitemap discovery from explicit XML or Robots declarations.
+- Add opt-in conditional recrawl and a first-match HTML field extraction adapter.
+- Stream CLI job recovery and checkpoint compaction through the page catalog.
+- Expose opt-in JSON request, task and serialized-page metrics.
+- Cover the new paths with targeted parser, loopback HTTP and interrupted-write checks.
+
 ## Unreleased — maintenance
 
 - Require exact HTML media types and stop structural preflight at its first over-budget character.

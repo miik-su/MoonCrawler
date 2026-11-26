@@ -1,6 +1,6 @@
 # Security policy
 
-0.2.x is a development series; 0.1.x users should upgrade. No version is described
+0.3.x is the current development series. No version is described
 as having completed an external security audit or production certification.
 
 Use GitHub's private vulnerability reporting for this repository when enabled:

@@ -6,7 +6,7 @@
 
 工作流程：URL 规范化 → Host 分组队列 → 默认 curl 安全传输 → Robots / 域名调度 → HTML 提取 → Pipeline → 增量持久化与重启恢复。
 
-当前源码版本 **0.2.3**，面向有明确站点授权范围的静态网页采集和离线内容处理。
+当前源码为 **0.3.0 开发版**，面向有明确站点授权范围的静态网页采集和离线内容处理。
 支持范围见[兼容矩阵](docs/compatibility.md)。各批验证按被测提交索引，包含三平台
 定向运行及历史合成负载数据。[验证记录](https://github.com/miik-su/MoonCrawler/blob/main/docs/verification.md)
 
@@ -56,15 +56,17 @@ moon run tools/cli_smoke.mbtx
 项目与已有爬虫框架共享 URL、Robots、调度和 HTML 提取等基础能力。
 本项目的独立成果集中在默认网络边界、增量持久化、故障恢复验证和按需页面导出；
 详见[同类项目对照](https://github.com/miik-su/MoonCrawler/blob/main/docs/peer-comparison.md)。
-当前没有 CSS/XPath、CSV、浏览器渲染或分布式执行能力。
+可选择从 Sitemap XML（含索引或 Robots 声明）发现页面，对上一轮作业执行条件重抓，
+或通过 MoonBit API 使用单元素选择器提取字段。范围和命令见[使用指南](docs/user-guide.md)。
+CLI 文件作业按记录恢复、压缩与导出，运行后可选输出 JSON 指标。
 
 | 包 | 能力 |
 | --- | --- |
 | `url` / `core` | URL 规范化、相对链接、过滤、模型与配置 |
 | `frontier` / `retry` | 优先级堆、延迟堆、去重、租约、状态与退避 |
-| `scheduler` / `robots` | 域名/全局限流、暂停、规则与缓存 |
+| `scheduler` / `robots` / `sitemap` | 域名/全局限流、暂停、规则与缓存、有界 XML 发现 |
 | `security` / `fetcher` | SSRF 策略、DNS 检查与固定连接 IP、受限 HTTP(S) |
-| `parser` / `pipeline` | MoonBit HTML5 DOM、内容提取、清洗和过滤 |
+| `parser` / `pipeline` | HTML5 DOM、有限单元素选择器、内容清洗和过滤 |
 | `storage` / `engine` | 内存/文件适配器、JSONL、原子检查点、完整生命周期 |
 
 UnsafeFetcher、Parser、Processor、Storage 开放给外部 MoonBit 包实现。
