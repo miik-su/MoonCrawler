@@ -35,6 +35,11 @@ pub fn PageReader::page_count(self : PageReader) -> Int32 {
 }
 
 ///|
+pub fn PageReader::config(self : PageReader) -> @core.Config {
+  self.catalog.config
+}
+
+///|
 /// Diagnostic batch count, not a heap/byte measurement.
 pub fn PageReader::max_batch_pages(self : PageReader) -> Int32 {
   self.catalog.max_batch_pages

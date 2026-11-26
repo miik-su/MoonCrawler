@@ -14,6 +14,8 @@ pub async fn export_jsonl(Iter[@core.Page], String) -> Int32
 
 pub fn jsonl(Array[@core.Page]) -> String
 
+pub async fn read_job_metadata(String) -> (Snapshot, Int32)?
+
 pub async fn read_snapshot(String) -> Snapshot?
 
 pub async fn read_text(String, limit? : Int32) -> String
@@ -29,9 +31,12 @@ pub struct FileStore {
 }
 pub fn FileStore::close(Self) -> Unit
 pub async fn FileStore::commit_batch(Self, @core.Config, Array[@core.Task], Array[@core.Page], Int64) -> Unit
+pub async fn FileStore::compact(Self) -> Unit
 pub async fn FileStore::load(Self) -> Snapshot?
+pub async fn FileStore::load_metadata(Self) -> (Snapshot, @core.PageLedger)?
 pub async fn FileStore::open(String, probe? : async (String) -> Unit) -> Self
 pub async fn FileStore::save(Self, Snapshot) -> Unit
+pub async fn FileStore::visit_pages(Self, async (@core.Page) -> Unit) -> Unit
 pub impl Storage for FileStore
 
 pub struct MemoryStore {
@@ -47,6 +52,7 @@ pub struct PageReader {
   // private fields
 }
 pub fn PageReader::close(Self) -> Unit
+pub fn PageReader::config(Self) -> @core.Config
 pub async fn PageReader::export_jsonl(Self, String) -> Int32
 pub fn PageReader::max_batch_pages(Self) -> Int32
 pub async fn PageReader::open(String) -> Self

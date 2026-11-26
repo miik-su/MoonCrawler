@@ -155,14 +155,37 @@ async fn FileStore::write_checkpoint(
   snapshot : Snapshot,
 ) -> Unit {
   validate(snapshot)
+  let ledger = @core.PageLedger::new()
+  ledger.commit(snapshot.config, snapshot.pages)
+  self.write_checkpoint_data(
+    snapshot.config,
+    snapshot.tasks,
+    snapshot.saved_at,
+    visit => {
+      for page in snapshot.pages {
+        visit(page)
+      }
+    },
+  )
+  self.ledger = ledger
+}
+
+///|
+async fn FileStore::write_checkpoint_data(
+  self : FileStore,
+  config : @core.Config,
+  tasks : Array[@core.Task],
+  saved_at : Int64,
+  read_pages : async (async (@core.Page) -> Unit) -> Unit,
+) -> Unit {
   if self.job_id.is_empty() {
     self.job_id = nonce()
   }
   let prefix = "shard-" + nonce()
   let shards : Array[String] = []
-  for i = 0; i < snapshot.tasks.length(); i = i + 128 {
+  for i = 0; i < tasks.length(); i = i + 128 {
     let name = "\{prefix}-t-\{i}.json"
-    let tasks = snapshot.tasks[i:(i + 128).min(snapshot.tasks.length())].to_owned()
+    let batch = tasks[i:(i + 128).min(tasks.length())].to_owned()
     atomic_file(
       self.directory,
       name,
@@ -170,9 +193,9 @@ async fn FileStore::write_checkpoint(
         @json.to_json(Delta::{
           job_id: self.job_id,
           sequence: self.sequence,
-          tasks,
+          tasks: batch,
           pages: [],
-          saved_at: snapshot.saved_at,
+          saved_at,
         }),
       ),
       probe=self.probe,
@@ -182,26 +205,26 @@ async fn FileStore::write_checkpoint(
   let batch : Array[@core.Page] = []
   let mut used = 0
   let mut part = 0
-  for page in snapshot.pages {
+  read_pages(page => {
     let size = @utf8.encode(@json.to_json(page).stringify()).length() * 2 + 256
     if !batch.is_empty() && (used + size > 8388608 || batch.length() >= 128) {
-      shards.push(self.page_shard(prefix, part, batch, snapshot.saved_at))
+      shards.push(self.page_shard(prefix, part, batch, saved_at))
       part += 1
       batch.clear()
       used = 0
     }
     batch.push(page)
     used += size
-  }
+  })
   if !batch.is_empty() {
-    shards.push(self.page_shard(prefix, part, batch, snapshot.saved_at))
+    shards.push(self.page_shard(prefix, part, batch, saved_at))
   }
   let index = Index::{
     job_id: self.job_id,
     format: 2,
     sequence: self.sequence,
-    config: snapshot.config,
-    saved_at: snapshot.saved_at,
+    config,
+    saved_at,
     shards,
   }
   atomic_file(
@@ -211,9 +234,7 @@ async fn FileStore::write_checkpoint(
     replace=true,
     probe=self.probe,
   )
-  self.job_config = Some(snapshot.config)
-  self.ledger = @core.PageLedger::new()
-  self.ledger.commit(snapshot.config, snapshot.pages)
+  self.job_config = Some(config)
   (self.probe)("cleanup_started")
   for name in @fs.readdir(self.directory) {
     let old_shard = name.has_prefix("shard-") &&

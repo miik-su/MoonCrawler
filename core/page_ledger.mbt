@@ -11,6 +11,21 @@ pub fn PageLedger::new() -> PageLedger {
 }
 
 ///|
+pub fn PageLedger::copy(self : PageLedger) -> PageLedger {
+  { sizes: self.sizes.copy(), bytes: self.bytes, metadata: self.metadata, }
+}
+
+///|
+pub fn PageLedger::count(self : PageLedger) -> Int32 {
+  self.sizes.length()
+}
+
+///|
+pub fn PageLedger::size(self : PageLedger) -> Int32 {
+  self.bytes
+}
+
+///|
 pub fn PageLedger::check(
   self : PageLedger,
   config : Config,

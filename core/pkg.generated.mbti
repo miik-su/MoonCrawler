@@ -90,7 +90,10 @@ pub struct PageLedger {
 }
 pub fn PageLedger::check(Self, Config, Array[Page]) -> (Int32, Int32) raise CrawlError
 pub fn PageLedger::commit(Self, Config, Array[Page]) -> Unit raise CrawlError
+pub fn PageLedger::copy(Self) -> Self
+pub fn PageLedger::count(Self) -> Int32
 pub fn PageLedger::new() -> Self
+pub fn PageLedger::size(Self) -> Int32
 
 pub(all) struct Request {
   url : @url.Url

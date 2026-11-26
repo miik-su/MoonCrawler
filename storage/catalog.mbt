@@ -7,6 +7,7 @@ priv struct Catalog {
   job_id : String
   records : Array[String]
   pages : Map[String, (Int32, Int32)]
+  ledger : @core.PageLedger
   selected : Map[Int32, Bool]
   max_batch_pages : Int32
   checkpoint_records : Int32
@@ -122,6 +123,7 @@ async fn scan_catalog(
     job_id: index.job_id,
     records,
     pages,
+    ledger,
     selected,
     max_batch_pages,
     checkpoint_records: index.shards.length(),
