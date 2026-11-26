@@ -1,0 +1,72 @@
+{
+  "source": "Selected fields from the public GitHub Actions jobs API",
+  "observed_date": "2026-11-26",
+  "test_command": "moon test storage/power_loss_model_test.mbt --target native --deny-warn",
+  "macos_test_cases_executed": 0,
+  "jobs": [
+    {
+      "workflow_run_id": 45789911336,
+      "job_id": 139806031667,
+      "source_revision": "effdc2a00185fb9bfdaeb46e2e783948e8f58d90",
+      "labels": [
+        "macos-15"
+      ],
+      "status": "completed",
+      "conclusion": "cancelled",
+      "runner_name": "",
+      "started_at": "2026-11-26T09:13:07Z",
+      "completed_at": "2026-11-26T09:28:08Z",
+      "steps": [],
+      "log_api_result": "NOT_FOUND",
+      "job_url": "https://github.com/miik-su/MoonCrawler/actions/runs/45789911336/job/139806031667"
+    },
+    {
+      "workflow_run_id": 45790563011,
+      "job_id": 139808207989,
+      "source_revision": "aa125155a0103c3cc327906ad21cf01ec3f20131",
+      "labels": [
+        "macos-15"
+      ],
+      "status": "completed",
+      "conclusion": "cancelled",
+      "runner_name": "",
+      "started_at": "2026-11-26T09:17:16Z",
+      "completed_at": "2026-11-26T09:32:17Z",
+      "steps": [],
+      "log_api_result": "NOT_FOUND",
+      "job_url": "https://github.com/miik-su/MoonCrawler/actions/runs/45790563011/job/139808207989"
+    },
+    {
+      "workflow_run_id": 45790818641,
+      "job_id": 139809090866,
+      "source_revision": "5aaecc77a0a85a7bfb35b3b75c98a22965028ea3",
+      "labels": [
+        "macos-26"
+      ],
+      "status": "completed",
+      "conclusion": "cancelled",
+      "runner_name": "",
+      "started_at": "2026-11-26T09:18:58Z",
+      "completed_at": "2026-11-26T09:33:58Z",
+      "steps": [],
+      "log_api_result": "NOT_FOUND",
+      "job_url": "https://github.com/miik-su/MoonCrawler/actions/runs/45790818641/job/139809090866"
+    },
+    {
+      "workflow_run_id": 45790818623,
+      "job_id": 139809091591,
+      "source_revision": "5aaecc77a0a85a7bfb35b3b75c98a22965028ea3",
+      "labels": [
+        "macos-15"
+      ],
+      "status": "completed",
+      "conclusion": "cancelled",
+      "runner_name": "",
+      "started_at": "2026-11-26T09:18:58Z",
+      "completed_at": "2026-11-26T09:33:59Z",
+      "steps": [],
+      "log_api_result": "NOT_FOUND",
+      "job_url": "https://github.com/miik-su/MoonCrawler/actions/runs/45790818623/job/139809091591"
+    }
+  ]
+}

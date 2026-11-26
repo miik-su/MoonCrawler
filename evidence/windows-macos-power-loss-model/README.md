@@ -6,14 +6,18 @@
 | 平台 | 归档时状态 |
 | --- | --- |
 | Windows Server 2022 | 6/6 通过。[执行日志](windows-2022/power-loss-model.log) · [源码与命令](windows-2022/results.json) |
-| macOS 15 ARM | 等待托管运行器，尚无本轮结果。[作业](https://github.com/miik-su/MoonCrawler/actions/runs/45789911336/job/139806031667) |
-| macOS 26 ARM | 同六项测试的候补作业，等待运行器。[作业](https://github.com/miik-su/MoonCrawler/actions/runs/45790818641) |
+| macOS 15 ARM | 未分配运行器，三个作业均在执行前取消，0 项测试执行。[首个作业](https://github.com/miik-su/MoonCrawler/actions/runs/45789911336/job/139806031667) |
+| macOS 26 ARM | 同六项测试的候补作业在分配运行器前取消，0 项测试执行。[候补作业](https://github.com/miik-su/MoonCrawler/actions/runs/45790818641/job/139809090866) |
 
 Windows 原始结果来自产物 `15101823484`，下载 ZIP 的 SHA-256 已校验，
 `a3b59de6744100f6bb713f95dd3ddc56eac7d7f223c596177777f61256e83e85`。
 macOS Intel 候补在安装固定 MoonBit 工具链时返回 `Unsupported platform: Darwin x86_64`，
 没有运行测试。候补工作流已改为 ARM。
 [Intel 候补日志](https://github.com/miik-su/MoonCrawler/actions/runs/45790563046)
+
+[macOS ARM 作业元数据](macos-arm-job-status.json)保留各作业链接、源码、时间戳、
+取消状态、空执行步骤和日志接口结果。四个 ARM 作业均在等待约 15 分钟后取消，
+日志接口均返回 `NOT_FOUND`。因此没有 macOS 恢复测试的原始输出，亦无通过或失败判定。
 
 执行命令：
 
