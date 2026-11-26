@@ -98,7 +98,8 @@ async fn boot(work : String, disk : String, stage : String, phase : String, log 
   let recover = phase == "verify"
   let mark = (if recover { "MOONCRAWLER_RECOVERED:" } else { "MOONCRAWLER_CUT:" }) + stage
   let args = [
-    "-m", "384", "-machine", "accel=tcg", "-nodefaults", "-display", "none",
+    "-m", "1024", "-smp", "1,maxcpus=1", "-machine", "accel=tcg",
+    "-nodefaults", "-display", "none",
     "-serial", "file:" + log, "-monitor", "none", "-nic", "none", "-no-reboot",
     "-kernel", work + "/kernel", "-initrd", work + "/initrd",
     "-drive", "file=" + disk + ",format=raw,if=virtio,cache=none",
@@ -157,6 +158,7 @@ async fn main {
     "source_revision": @json.to_json(source), "source_dirty_at_start": @json.to_json(dirty),
     "kernel": @json.to_json(version), "qemu": @json.to_json(command("qemu-system-x86_64", ["--version"])),
     "filesystem": "ext4", "drive": "raw virtio cache=none", "guest_journal_commit_seconds": 600,
+    "guest_memory_mib": 1024, "guest_cpus": 1,
     "cut": "host SIGKILL of QEMU process after guest serial marker; no guest shutdown",
     "limits": "guest crash semantics on this ext4 and virtual disk; host hardware remains powered",
     "full_suite": false, "cases": @json.to_json(rows),
