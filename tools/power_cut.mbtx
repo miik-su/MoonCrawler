@@ -42,8 +42,11 @@ let init =
   #|  $bb sync
   #|  exec /probe vm-write /job "$stage"
   #|fi
-  #|/probe verify /job "$stage"
-  #|echo "MOONCRAWLER_RECOVERED:$stage"
+  #|if /probe verify /job "$stage"; then
+  #|  echo "MOONCRAWLER_RECOVERED:$stage"
+  #|else
+  #|  echo "MOONCRAWLER_VERIFY_FAILED:$stage"
+  #|fi
   #|$bb poweroff -f
 
 async fn guest(work : String, version : String, executable : String) -> Unit {
@@ -104,7 +107,13 @@ async fn boot(work : String, disk : String, stage : String, phase : String, log 
   @async.with_timeout(60000, () => @async.with_task_group(group => {
     let vm = @process.spawn(group, "qemu-system-x86_64", args, no_wait=true, cancel_handler=@process.hard_cancel())
     while !@fs.exists(log) { @async.sleep(50) }
-    while !@fs.read_file(log).text().split("\n").any(line => line.trim() == mark) {
+    for ;; {
+      let serial = @fs.read_file(log).text()
+      if serial.contains("MOONCRAWLER_VERIFY_FAILED:") || serial.contains("Kernel panic") {
+        println(serial)
+        abort("QEMU guest could not recover the checkpoint")
+      }
+      if serial.split("\n").any(line => line.trim() == mark) { break }
       @async.sleep(50)
     }
     if recover {
