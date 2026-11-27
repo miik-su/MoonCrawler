@@ -1,5 +1,21 @@
 # Focused verification
 
+## Linux system DNS and export write exhaustion
+
+The [Linux system boundary workflow](https://github.com/miik-su/MoonCrawler/actions/workflows/platform-boundary.yml)
+runs two checks on disposable Ubuntu runners:
+
+- `moon run tools/platform_boundary.mbtx -- cname` uses the native system resolver
+  against a loopback DNS fixture in private network and mount namespaces. The
+  crawler checks the final IPv4 address returned through each CNAME. The fixture
+  opens no HTTP connection and tests one terminal A record per alias.
+- `moon run tools/platform_boundary.mbtx -- export-enospc` makes the real CLI
+  export to a private 64 KiB Linux tmpfs. The kernel write error must propagate
+  to a nonzero exit. The check repeats the export to normal storage and verifies
+  both complete records against the original synthetic job.
+
+See the [results, raw output and validation limits](../evidence/linux-system-boundaries/README.md).
+
 ## TLS certificate hostname
 
 On Linux, `moon run tools/tls_hostname_check.mbtx` uses the real crawler CLI

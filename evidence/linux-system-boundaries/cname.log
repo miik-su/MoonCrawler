@@ -1,0 +1,12 @@
+2026-11-27T09:43:34.8665391Z Downloading moonbitlang/x@0.5.7
+2026-11-27T09:43:35.1982592Z Using cached moonbitlang/async@0.22.5
+2026-11-27T09:43:35.2252064Z Downloading moonbit-community/html@0.2.4
+2026-11-27T09:43:39.5323642Z /home/runner/work/MoonCrawler/MoonCrawler/.mooncakes/moonbitlang/async/src/internal/event_loop/thread_pool.c: In function ‘cancellation_signal_handler’:
+2026-11-27T09:43:39.5326153Z /home/runner/work/MoonCrawler/MoonCrawler/.mooncakes/moonbitlang/async/src/internal/event_loop/thread_pool.c:471:5: warning: ignoring return value of ‘write’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+2026-11-27T09:43:39.5327449Z   471 |     write(pool.notify_send, &data, sizeof(data));
+2026-11-27T09:43:39.5328048Z       |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2026-11-27T09:43:39.5328643Z Finished. moon: ran 91 tasks, now up to date
+2026-11-27T09:43:39.5329138Z Artifacts:
+2026-11-27T09:43:39.5329942Z   miik-su/mooncrawler/cmd/storage_probe  native  /home/runner/work/MoonCrawler/MoonCrawler/_build/native/debug/build/cmd/storage_probe/storage_probe.exe
+2026-11-27T09:43:39.5668849Z SystemResolver public.example CNAME terminal IPv4 accepted: 8.8.8.8
+2026-11-27T09:43:39.5669912Z SystemResolver private.example CNAME terminal IPv4 10.0.0.1 rejected: resolved destination is not public IPv4

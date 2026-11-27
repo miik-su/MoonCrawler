@@ -1,0 +1,19 @@
+2026-11-27T09:43:39.3095920Z Downloading moonbit-community/html@0.2.4
+2026-11-27T09:43:39.3696165Z Downloading moonbitlang/x@0.5.7
+2026-11-27T09:43:39.4320102Z Using cached moonbitlang/async@0.22.5
+2026-11-27T09:43:52.4000277Z /home/runner/work/MoonCrawler/MoonCrawler/.mooncakes/moonbitlang/async/src/internal/event_loop/thread_pool.c: In function ‘cancellation_signal_handler’:
+2026-11-27T09:43:52.4002734Z /home/runner/work/MoonCrawler/MoonCrawler/.mooncakes/moonbitlang/async/src/internal/event_loop/thread_pool.c:471:5: warning: ignoring return value of ‘write’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+2026-11-27T09:43:52.4003934Z   471 |     write(pool.notify_send, &data, sizeof(data));
+2026-11-27T09:43:52.4004444Z       |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2026-11-27T09:43:52.4004874Z Finished. moon: ran 91 tasks, now up to date
+2026-11-27T09:43:52.4005229Z Artifacts:
+2026-11-27T09:43:52.4005868Z   miik-su/mooncrawler/cmd/storage_probe  native  /home/runner/work/MoonCrawler/MoonCrawler/_build/native/debug/build/cmd/storage_probe/storage_probe.exe
+2026-11-27T09:43:54.2879522Z Finished. moon: ran 19 tasks, now up to date
+2026-11-27T09:43:54.2879914Z Artifacts:
+2026-11-27T09:43:54.2880512Z   miik-su/mooncrawler/cmd/mooncrawler  native  /home/runner/work/MoonCrawler/MoonCrawler/_build/native/debug/build/cmd/mooncrawler/mooncrawler.exe
+2026-11-27T09:43:54.4011969Z Limited export exit: 1
+2026-11-27T09:43:54.4017183Z OSError("@fs.File::write(): No space left on device")
+2026-11-27T09:43:54.4017498Z
+2026-11-27T09:43:54.4025827Z Linux tmpfs partial JSONL bytes: 65536
+2026-11-27T09:43:54.4523904Z JSONL exported
+2026-11-27T09:43:54.4565389Z Same job re-exported to normal storage: 2 matching JSONL records, 98304 text bytes each.

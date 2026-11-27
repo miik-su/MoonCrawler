@@ -37,6 +37,9 @@ not a measured throughput or memory guarantee. See [audit status](https://github
 The 10K distinct-host model confirms O(nonempty hosts) candidate scanning per claim;
 it does not establish 100K real-page throughput. Resolver adapters can return complete
 address sets; SystemResolver still exposes only the native selected IPv4 address.
+The [Linux boundary evidence](https://github.com/miik-su/MoonCrawler/tree/main/evidence/linux-system-boundaries)
+covers one terminal IPv4 per CNAME through the system resolver and a real tmpfs
+write-space error through the JSONL CLI. The failed export can leave a partial file.
 
 ## Deferred release gates
 

@@ -15,6 +15,8 @@
 记录了测量数据、修复前后的结果及适用范围。
 [Windows 与 macOS 恢复模型](https://github.com/miik-su/MoonCrawler/tree/main/evidence/windows-macos-power-loss-model)
 记录了日志缺失、截断和索引回退时的行为及验证边界。
+[Linux 系统 DNS 与导出写满实测](https://github.com/miik-su/MoonCrawler/tree/main/evidence/linux-system-boundaries)
+记录了 CNAME 最终地址检查、内核写满错误和同一作业的重新导出结果。
 
 ## 快速开始
 
