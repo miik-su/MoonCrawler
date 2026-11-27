@@ -1,5 +1,11 @@
 # Focused verification
 
+## Saved-job metrics and HTML text extraction
+
+The [Windows result and original output](../evidence/2026-11-27-metrics-parser/README.md)
+cover the Prometheus text snapshot and five focused HTML tests, including
+text extraction from 1,500 nested HTML elements.
+
 ## Linux system DNS and export write exhaustion
 
 The [Linux system boundary workflow](https://github.com/miik-su/MoonCrawler/actions/workflows/platform-boundary.yml)
