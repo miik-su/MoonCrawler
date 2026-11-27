@@ -1,0 +1,8 @@
+2026-11-27T09:05:16.0883330Z ##[group]Run moon test storage/power_loss_model_test.mbt --target native --deny-warn
+2026-11-27T09:05:16.0885410Z moon test storage/power_loss_model_test.mbt --target native --deny-warn
+2026-11-27T09:05:16.1004260Z shell: /bin/bash -e {0}
+2026-11-27T09:05:16.1005250Z ##[endgroup]
+2026-11-27T09:05:16.2059990Z Downloading moonbit-community/html@0.2.4
+2026-11-27T09:05:16.7611480Z Downloading moonbitlang/x@0.5.7
+2026-11-27T09:05:17.3677370Z Downloading moonbitlang/async@0.22.5
+2026-11-27T09:05:27.8393780Z Total tests: 6, passed: 6, failed: 0.

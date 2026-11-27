@@ -1,13 +1,14 @@
 # Windows／macOS 持久化状态恢复模型
 
-被测源码为 [`effdc2a`](https://github.com/miik-su/MoonCrawler/commit/effdc2a00185fb9bfdaeb46e2e783948e8f58d90)。
-[GitHub Actions](https://github.com/miik-su/MoonCrawler/actions/runs/45789911336)
+Windows 被测源码为 [`effdc2a`](https://github.com/miik-su/MoonCrawler/commit/effdc2a00185fb9bfdaeb46e2e783948e8f58d90)，
+macOS 被测源码为 [`5aaecc7`](https://github.com/miik-su/MoonCrawler/commit/5aaecc77a0a85a7bfb35b3b75c98a22965028ea3)。
+两次运行对应的 `storage/` 源码相同。
 
 | 平台 | 归档时状态 |
 | --- | --- |
 | Windows Server 2022 | 6/6 通过。[执行日志](windows-2022/power-loss-model.log) · [源码与命令](windows-2022/results.json) |
 | macOS 15 ARM | 未分配运行器，三个作业均在执行前取消，0 项测试执行。[首个作业](https://github.com/miik-su/MoonCrawler/actions/runs/45789911336/job/139806031667) |
-| macOS 26 ARM | 三次尝试均在分配运行器前取消，0 项测试执行。[第三次作业](https://github.com/miik-su/MoonCrawler/actions/runs/45790818641/job/139901622406) |
+| macOS 26 ARM | 第四次尝试，6/6 通过。[测试步骤日志](macos-26-arm64/power-loss-model.log) · [环境与工具链](macos-26-arm64/environment.log) · [源码与命令](macos-26-arm64/results.json) · [GitHub 作业](https://github.com/miik-su/MoonCrawler/actions/runs/45790818641/job/140410197464) |
 
 Windows 原始结果来自产物 `15101823484`，下载 ZIP 的 SHA-256 已校验，
 `a3b59de6744100f6bb713f95dd3ddc56eac7d7f223c596177777f61256e83e85`。
@@ -16,10 +17,9 @@ macOS Intel 候补在安装固定 MoonBit 工具链时返回 `Unsupported platfo
 [Intel 候补日志](https://github.com/miik-su/MoonCrawler/actions/runs/45790563046)
 
 [macOS ARM 作业元数据](macos-arm-job-status.json)保留各作业链接、源码、时间戳、
-取消状态、空执行步骤和日志接口结果。六个 ARM 作业均在等待约 15 分钟后取消，
-日志接口均返回 `NOT_FOUND`。因此没有 macOS 恢复测试的原始输出，亦无通过或失败判定。
-第二、三次尝试均只重跑 macOS 候补作业。当前工作站为 x64 Windows，未发现已配置的
-macOS ARM 主机或可直接使用的账户环境。
+先前六个因未分配运行器而取消的作业记录。它们没有测试输出。
+2026-11-27 上海时间约 17:05，macOS 26 ARM 候补的第四次尝试执行了全部六项。
+归档的日志保留 GitHub 时间戳和完整测试步骤输出，只移除了 ANSI 颜色码。
 
 执行命令：
 
@@ -30,7 +30,7 @@ moon test storage/power_loss_model_test.mbt --target native --deny-warn
 每个场景在临时目录中由真实 FileStore 写出检查点和 WAL，关闭写入器后，
 只改动该夹具中的文件，再用 FileStore 打开并断言任务和页面结果。
 
-| 注入的持久化状态 | Windows 实测行为 |
+| 注入的持久化状态 | Windows 与 macOS 实测行为 |
 | --- | --- |
 | 日志只留在未发布的临时文件 | 忽略该文件，保留旧快照 |
 | 最后一条已发布 WAL 消失，无更晚记录 | 恢复旧快照；没有序列缺口信号，不能察觉尾条丢失 |
