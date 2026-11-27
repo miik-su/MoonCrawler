@@ -84,6 +84,29 @@ fn parse_document(
 }
 
 ///|
+// Match the DOM's text-content order without a recursive call per child.
+fn descendant_text(doc : @html.Document, node : Int32) -> String {
+  let out = StringBuilder()
+  let stack = [node]
+  while stack.pop() is Some(id) {
+    let children = match doc.get_node(id) {
+      Some(TextNode(text)) => {
+        out.write_string(text)
+        continue
+      }
+      Some(ElementNode(element)) => element.children
+      Some(DocumentNode(children~)) | Some(DocumentFragmentNode(children~)) =>
+        children
+      _ => continue
+    }
+    for i = children.length() - 1; i >= 0; i = i - 1 {
+      stack.push(children[i])
+    }
+  }
+  out.to_string()
+}
+
+///|
 fn extract_document(
   doc : @html.Document,
   response : @core.Response,
@@ -110,7 +133,7 @@ fn extract_document(
     match doc.get_tag_name(i) {
       Some("title") =>
         if title.is_empty() {
-          title = doc.get_text_content(i).trim().to_owned()
+          title = descendant_text(doc, i).trim().to_owned()
         }
       Some("a") | Some("area") => {
         let rel = doc.get_attribute(i, "rel").unwrap_or("").to_lower()

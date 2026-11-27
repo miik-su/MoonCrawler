@@ -111,7 +111,7 @@ pub impl Parser for SelectorParser with fn parse(self, response) {
         continue
       }
       let value = match field.attribute {
-        None => Some(doc.get_text_content(node).trim().to_owned())
+        None => Some(descendant_text(doc, node).trim().to_owned())
         Some(name) => doc.get_attribute(node, name.to_lower())
       }
       if value is Some(value) {

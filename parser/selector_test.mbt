@@ -29,3 +29,22 @@ test "bounded selectors extract first matching text and attribute" {
     },
   )
 }
+
+///|
+test "selector text traverses deep descendants in document order" {
+  let parser = @parser.SelectorParser::new([
+    { name: "content", selector: "#outer", attribute: None, },
+  ])
+  let body = "<div id='outer'> start" +
+    "<div>".repeat(1500) +
+    "middle" +
+    "</div>".repeat(1500) +
+    "end </div>"
+  let page = parser.parse({
+    url: @url.parse("https://example.com/"),
+    status: 200,
+    headers: { "content-type": "text/html" },
+    body,
+  })
+  assert_eq(page.metadata.get("extract.content"), Some("startmiddleend"))
+}
