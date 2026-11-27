@@ -27,7 +27,7 @@ async fn main {
     "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "1",
     "-subj", "/CN=localhost", "-addext", "subjectAltName=DNS:localhost",
     "-keyout", key, "-out", cert,
-  ]).run(timeout_ms=10000)
+  ]).output(timeout_ms=10000).check()
   cli(["init", config], cert) |> ignore
   let settings = @fs.read_file(config).text()
     .replace(old="\"allowed_hosts\": []", new="\"allowed_hosts\": [\"localhost\", \"127.0.0.1\"]")
@@ -55,10 +55,18 @@ async fn main {
     let mismatch_job = dir + "/mismatch"
     let matched = cli(["crawl", config, match_job, "https://localhost:\{addr.port()}/"], cert)
     assert_true(matched.contains("saved 1 pages"), msg=matched)
-    let mismatched = cli(["crawl", config, mismatch_job, "https://127.0.0.1:\{addr.port()}/"], cert)
+    let mismatch_url = "https://127.0.0.1:\{addr.port()}/"
+    let mismatched = cli(["crawl", config, mismatch_job, mismatch_url], cert)
     assert_true(mismatched.contains("saved 0 pages"), msg=mismatched)
     let status = cli(["status", mismatch_job], cert)
-    assert_true(status.contains("curl transport exit 60"), msg=status)
+    assert_true(status.contains("CrawlError.Protocol"), msg=status)
+    // CLI status publishes the error category. Confirm the underlying hostname
+    // error independently against the same endpoint and trust input.
+    let code = @shell.Cmd("curl", [
+      "--disable", "--silent", "--noproxy", "*", "--max-time", "5",
+      "--cacert", cert, "--url", mismatch_url,
+    ]).status(timeout_ms=6000)
+    assert_eq(code, 60)
   })
   println("Trusted fixture: localhost accepted (1 page); IP hostname mismatch rejected (0 pages, curl 60).")
 }

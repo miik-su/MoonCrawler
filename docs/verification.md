@@ -5,8 +5,9 @@
 On Linux, `moon run tools/tls_hostname_check.mbtx` uses the real crawler CLI
 against one local OpenSSL endpoint. A temporary certificate is trusted only by
 the test child. Access by its DNS name should succeed; access by the loopback
-IP absent from its SAN should fail with curl code 60. The matching request
-controls for certificate trust and startup errors.
+IP absent from its SAN should fail with a CLI protocol error and no saved page.
+The matching request controls for certificate trust and startup errors. A separate
+curl probe to the same IP using the same trust input verifies exit code 60.
 [curl CA bundle behavior](https://curl.se/docs/manpage.html#CURLCABUNDLE)
 
 ## Windows and macOS persisted-state recovery model
