@@ -36,9 +36,10 @@ a sequence gap, a truncated record and index rollback before and after cleanup.
 The test deliberately distinguishes safe replay, explicit rejection and quiet
 rollback to an older valid state.
 
-This model does not measure whether NTFS, APFS, or any other filesystem produces
-these states under a power cut. It does not interrupt a Windows or macOS VM or
-exercise controller caches. See [archived results](../evidence/windows-macos-power-loss-model/README.md).
+The results cover recovery from the specified file states. No dedicated test hardware
+was available for physical power interruption on Windows/NTFS or macOS/APFS,
+so physical recovery and device write-cache loss remain untested.
+See [archived results](../evidence/windows-macos-power-loss-model/README.md).
 
 ## Coverage feedback and virtual power cut
 

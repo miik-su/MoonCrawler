@@ -47,8 +47,9 @@ moon test storage/power_loss_model_test.mbt --target native --deny-warn
 Linux 作业目录同步与 ext4 的验证范围单独记录。
 [Linux/ext4 虚拟断电报告](../2026-11-26-specialized/README.md)
 
-当前没有可用的专用 Windows 或 macOS 断电测试 VM。GitHub 托管 arm64 macOS
-运行器不支持嵌套虚拟化。实机测试需要专用可丢弃环境，不能通过关闭共享运行器完成。
+受设备条件限制，当前没有可用于断电实验的专用 Windows 或 macOS 设备和测试盘。
+两平台的实机断电测试均为 0 次，恢复成功率和耗时未测。GitHub 托管 arm64 macOS
+运行器不支持嵌套虚拟化，本归档仅记录六项持久化文件状态测试在各平台的结果。
 [GitHub 托管运行器限制](https://docs.github.com/en/actions/reference/runners/github-hosted-runners#limitations-for-arm64-macos-runners)
 
 ### 真正断电的验收条件

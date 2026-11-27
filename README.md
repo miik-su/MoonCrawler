@@ -14,7 +14,8 @@
 [覆盖引导与 Linux/ext4 虚拟断电结果](https://github.com/miik-su/MoonCrawler/tree/main/evidence/2026-11-26-specialized)
 记录了测量数据、修复前后的结果及适用范围。
 [Windows 与 macOS 恢复模型](https://github.com/miik-su/MoonCrawler/tree/main/evidence/windows-macos-power-loss-model)
-记录了日志缺失、截断和索引回退时的行为及验证边界。
+记录了 Windows 与 macOS ARM 各六项持久化文件状态测试的结果。受设备条件限制，
+Windows/NTFS 和 macOS/APFS 的实机断电恢复及设备写缓存丢失尚未实测。
 [Linux 系统 DNS 与导出写满实测](https://github.com/miik-su/MoonCrawler/tree/main/evidence/linux-system-boundaries)
 记录了 CNAME 最终地址检查、内核写满错误和同一作业的重新导出结果。
 
