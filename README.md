@@ -102,7 +102,9 @@ Frontier 的独立 fencing API 不表示 Engine 提供运行时抢占、续租�
 - [工程与材料准备状态](https://github.com/miik-su/MoonCrawler/blob/main/docs/participation-readiness.md)
 
 测试范围、命令和原始结果见[验证记录](https://github.com/miik-su/MoonCrawler/blob/main/docs/verification.md)。API 精确签名见各包的 `pkg.generated.mbti`。
-当前按维护者要求暂不发布 Mooncakes；可以从源码运行。历史证据、验证脚本及探针保存在 GitHub，
-本地包清单将它们排除；打包后源码检查和离线示例可用 `moon run tools/package_check.mbtx` 验证。
+包名为 `miik-su/mooncrawler`，公开版本见 [Mooncakes 包页面](https://mooncakes.io/docs/miik-su/mooncrawler)。
+在其他 MoonBit 项目中可用 `moon add miik-su/mooncrawler@0.3.0` 添加 0.3.0 依赖，构建时选择 Native 目标。
+历史证据、验证脚本及探针保存在 GitHub，发布包将它们排除。打包后源码检查和离线示例可用
+`moon run tools/package_check.mbtx` 验证。
 项目源代码采用 [Apache-2.0](LICENSE)。[NOTICE](NOTICE) 和
 [第三方声明](THIRD_PARTY_NOTICES.md) 记录归属和依赖许可证。

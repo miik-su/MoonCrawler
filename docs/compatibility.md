@@ -50,7 +50,7 @@ write-space error through the JSONL CLI. The failed export can leave a partial f
 - Physical power interruption and other filesystem/platform crash fixtures.
   [Linux/ext4 virtual power-cut evidence](https://github.com/miik-su/MoonCrawler/tree/main/evidence/2026-11-26-specialized)
   covers five specific write/publication stages.
-- Mooncakes publication and signed release artifacts.
+- Signed release artifacts.
 
 See [0.2.3 evidence](https://github.com/miik-su/MoonCrawler/blob/main/evidence/2026-11-13-0.2.3/README.md) for selected tests,
 eleven forced-termination stages, UDP DNS fixtures and per-process memory comparisons.

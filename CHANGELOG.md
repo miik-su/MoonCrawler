@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0 — development source
+## 0.3.0
 
 - Synchronize the Linux job directory at record publication. Add bounded compiler coverage feedback and isolated virtual power-cut checks.
 
@@ -8,6 +8,8 @@
 - Add opt-in conditional recrawl and a first-match HTML field extraction adapter.
 - Stream CLI job recovery and checkpoint compaction through the page catalog.
 - Expose opt-in JSON request, task and serialized-page metrics.
+- Export saved job statistics as Prometheus text with `stats --prometheus`.
+- Traverse deeply nested title and selector text iteratively.
 - Cover the new paths with targeted parser, loopback HTTP and interrupted-write checks.
 
 ## Unreleased — maintenance
@@ -23,7 +25,7 @@
 - Add explicit README metadata and filter non-library artifacts from local packages.
 - Verify extracted package source and offline example without registry publication.
 - Handle intentionally retained Unix fixture imports on Windows without disabling warning checks.
-- Capture focused readiness evidence; Mooncakes publication remains deferred.
+- Capture focused readiness evidence for the November 14 source snapshot.
 
 ## 0.2.3
 
