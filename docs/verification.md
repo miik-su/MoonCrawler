@@ -1,5 +1,14 @@
 # Focused verification
 
+## TLS certificate hostname
+
+On Linux, `moon run tools/tls_hostname_check.mbtx` uses the real crawler CLI
+against one local OpenSSL endpoint. A temporary certificate is trusted only by
+the test child. Access by its DNS name should succeed; access by the loopback
+IP absent from its SAN should fail with curl code 60. The matching request
+controls for certificate trust and startup errors.
+[curl CA bundle behavior](https://curl.se/docs/manpage.html#CURLCABUNDLE)
+
 ## Windows and macOS persisted-state recovery model
 
 `moon test storage/power_loss_model_test.mbt --target native --deny-warn`

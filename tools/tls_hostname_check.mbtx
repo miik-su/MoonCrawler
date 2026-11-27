@@ -1,0 +1,64 @@
+----
+import {
+  "moonbitlang/async@0.22.5",
+  "moonbitlang/async@0.22.5/fs",
+  "moonbitlang/async@0.22.5/process",
+  "moonbitlang/async@0.22.5/shell",
+  "moonbitlang/async@0.22.5/socket",
+}
+----
+
+async fn cli(args : Array[String], cert : String) -> String {
+  let command = ["run", "cmd/mooncrawler", "--target", "native", "--"]
+  command.append(args)
+  let result = @shell.Cmd("moon", command, env={"CURL_CA_BUNDLE": cert, "MOONCRAWLER_CURL": "curl"}).output(timeout_ms=30000)
+  result.check()
+  result.stdout()
+}
+
+async fn main {
+  assert_true(@async.platform is Linux, msg="this fixture requires Linux curl and OpenSSL")
+  let dir = @fs.tmpdir(prefix="crawler-tls-name-")
+  defer @fs.rmdir(dir, recursive=true)
+  let cert = dir + "/cert.pem"
+  let key = dir + "/key.pem"
+  let config = dir + "/config.json"
+  @shell.Cmd("openssl", [
+    "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "1",
+    "-subj", "/CN=localhost", "-addext", "subjectAltName=DNS:localhost",
+    "-keyout", key, "-out", cert,
+  ]).run(timeout_ms=10000)
+  cli(["init", config], cert) |> ignore
+  let settings = @fs.read_file(config).text()
+    .replace(old="\"allowed_hosts\": []", new="\"allowed_hosts\": [\"localhost\", \"127.0.0.1\"]")
+    .replace(old="\"allow_loopback\": false", new="\"allow_loopback\": true")
+    .replace(old="\"robots\": true", new="\"robots\": false")
+    .replace(old="\"max_pages\": 1000", new="\"max_pages\": 1")
+  @fs.write_file(config, settings)
+  let reservation = @socket.TcpServer(@socket.Addr::parse("127.0.0.1:0"))
+  let addr = reservation.addr
+  reservation.close()
+  @async.with_task_group(group => {
+    let child = @process.spawn(group, "openssl", [
+      "s_server", "-accept", "127.0.0.1:\{addr.port()}", "-cert", cert,
+      "-key", key, "-www", "-quiet",
+    ], no_wait=true, cancel_handler=@process.hard_cancel())
+    defer child.cancel()
+    @async.with_timeout(5000, () => {
+      for ;; {
+        let connection = try Some(@socket.Tcp::connect(addr)) catch { _ => None }
+        if connection is Some(tcp) { tcp.close(); break }
+        @async.sleep(50)
+      }
+    })
+    let match_job = dir + "/match"
+    let mismatch_job = dir + "/mismatch"
+    let matched = cli(["crawl", config, match_job, "https://localhost:\{addr.port()}/"], cert)
+    assert_true(matched.contains("saved 1 pages"), msg=matched)
+    let mismatched = cli(["crawl", config, mismatch_job, "https://127.0.0.1:\{addr.port()}/"], cert)
+    assert_true(mismatched.contains("saved 0 pages"), msg=mismatched)
+    let status = cli(["status", mismatch_job], cert)
+    assert_true(status.contains("curl transport exit 60"), msg=status)
+  })
+  println("Trusted fixture: localhost accepted (1 page); IP hostname mismatch rejected (0 pages, curl 60).")
+}

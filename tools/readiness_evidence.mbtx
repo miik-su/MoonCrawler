@@ -34,6 +34,9 @@ async fn main {
   if @async.platform is Windows || @async.platform is MacOS {
     jobs.push(("power-loss-model", ["moon", "test", "storage/power_loss_model_test.mbt", "--target", "native", "--deny-warn"]))
   }
+  if @async.platform is Linux {
+    jobs.push(("tls-hostname", ["moon", "run", "tools/tls_hostname_check.mbtx"]))
+  }
   let rows : Array[Json] = []
   let table = StringBuilder()
   table.write_string("# Focused maintenance verification\n\nSource: `" + source + "`.\nScope: build, interfaces, transport, parser, Sitemap, storage, loopback CLI, and local package.\nMooncakes publication: **not attempted**. Full suite: **not run**.\n\n| Check | Exit | Elapsed ms | Raw output |\n| --- | ---: | ---: | --- |\n")
