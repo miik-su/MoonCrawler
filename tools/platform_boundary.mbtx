@@ -10,7 +10,10 @@ import {
 
 async fn build(name : String) -> String {
   @shell.Cmd("moon", ["build", "cmd/" + name, "--target", "native", "--debug"]).run(timeout_ms=120000)
-  "_build/native/debug/build/cmd/\{name}/\{name}"
+  let base = @fs.realpath(".") + "/_build/native/debug/build/cmd/\{name}/\{name}"
+  let binary = if @fs.exists(base + ".exe") { base + ".exe" } else { base }
+  assert_true(@fs.exists(binary), msg="missing native build output: " + binary)
+  binary
 }
 
 async fn check_export(dir : String, probe : String) -> Unit {
