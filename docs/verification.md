@@ -9,6 +9,7 @@ IP absent from its SAN should fail with a CLI protocol error and no saved page.
 The matching request controls for certificate trust and startup errors. A separate
 curl probe to the same IP using the same trust input verifies exit code 60.
 [curl CA bundle behavior](https://curl.se/docs/manpage.html#CURLCABUNDLE)
+[Linux result and original output](../evidence/linux-tls-hostname/README.md)
 
 ## Windows and macOS persisted-state recovery model
 

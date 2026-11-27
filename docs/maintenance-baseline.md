@@ -18,6 +18,9 @@ Sitemap、选择器、重抓、流式作业和诊断的边界见 [兼容矩阵](
 独立进程测量、11 个强制终止阶段及历史报告见 [证据归档](../evidence/2026-11-26-0.3.0/README.md)。
 
 专项覆盖引导与 Linux/ext4 五个虚拟断电场景已通过。[专项验证](../evidence/2026-11-26-specialized/README.md)
+Windows 和 macOS ARM 均已完成六个持久化文件状态恢复场景。它们补充的是恢复逻辑证据，
+物理掉电、NTFS/APFS 崩溃回放和设备缓存丢失仍未验证。[跨平台恢复模型](../evidence/windows-macos-power-loss-model/README.md)
+Linux 受信证书的主机名匹配和不匹配专项已通过。[TLS 实测](../evidence/linux-tls-hostname/README.md)
 当前发布验收仍区分定向检查与全量测试。独立安全审计、机房真实负载及物理断电恢复
 没有本轮认证结果。保留源码与本地包，Mooncakes 按维护者要求暂缓。
 新增实现应同步维护 README、兼容矩阵和对应配置，用能区分故障与成功的关键测试验证。
