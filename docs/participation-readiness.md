@@ -1,7 +1,7 @@
 # 年度开源黑客松：工程与材料准备状态
 
-更新：2026-11-27；当前源码为 0.3.0 开发版。工作范围不包含申报书制作、填写报名表、
-加入交流群或发布到 Mooncakes；这些事项不会被自动标记为完成。
+更新：2026-11-28；MoonCrawler 0.3.0 已发布。本次工作范围不包含申报书制作、
+填写报名表或加入交流群。
 
 ## 已落实的仓库事项
 
@@ -12,7 +12,7 @@
 | 参考与材料来源 | [第三方声明](../THIRD_PARTY_NOTICES.md)、[来源清单](source-provenance.md)、[依赖许可证据](dependency-licenses.md) |
 | 可复现检查 | 工具链、README、离线示例、关键测试及 [历史三平台证据](../evidence/2026-11-13-0.2.3/platforms/README.md) |
 | 本轮验证 | [本地准备工作报告](../evidence/2026-11-14-readiness/README.md)与[三平台原始结果](../evidence/2026-11-14-readiness/platforms/README.md)；均通过关键检查，不覆盖旧版测量数据 |
-| 发布前本地准备 | 显式 README 元数据、包文件过滤、`tools/package_check.mbtx` 的包内检查与离线示例；未执行发布 |
+| Mooncakes 发布 | `miik-su/mooncrawler@0.3.0` 已发布，独立项目从注册表安装后通过 Native 编译和离线解析检查。[发布验证](../evidence/2026-11-28-mooncakes/README.md) |
 
 ## 需要维护者本人确认
 
@@ -28,7 +28,6 @@
 
 ## 明确保留的交付边界
 
-- Mooncakes 发布：维护者要求暂缓；没有执行 `moon publish` 或更改登录账号。
 - 全量测试：未执行，当前只做关键部分必要测试；不能宣称全量认证。
 - Engine 正文缓存：CLI 采用流式文件作业；常规库构造器仍可保留完整 Page。
 - DOM 资源：输入和结构预检不是构建时硬内存上限。

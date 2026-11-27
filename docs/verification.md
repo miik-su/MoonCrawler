@@ -1,5 +1,11 @@
 # Focused verification
 
+## Mooncakes 0.3.0
+
+The [registry release evidence](../evidence/2026-11-28-mooncakes/README.md)
+records package validation, publication, and a native parser smoke test in a
+separate project installed from Mooncakes.
+
 ## Saved-job metrics and HTML text extraction
 
 The [Windows result and original output](../evidence/2026-11-27-metrics-parser/README.md)

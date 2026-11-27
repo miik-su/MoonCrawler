@@ -24,5 +24,6 @@ Linux 受信证书的主机名匹配和不匹配专项已通过。[TLS 实测](.
 Linux 系统 DNS 已检查 CNAME 最终 IPv4，CLI 已验证写满失败后能从同一作业完整导出。
 [结果及原始日志](../evidence/linux-system-boundaries/README.md)
 当前发布验收仍区分定向检查与全量测试。独立安全审计、机房真实负载及物理断电恢复
-没有本轮认证结果。保留源码与本地包，Mooncakes 按维护者要求暂缓。
+没有本轮认证结果。`miik-su/mooncrawler@0.3.0` 已于 2026-11-28 发布到 Mooncakes，
+并在独立项目中验证安装和离线解析。[发布验证](../evidence/2026-11-28-mooncakes/README.md)
 新增实现应同步维护 README、兼容矩阵和对应配置，用能区分故障与成功的关键测试验证。
