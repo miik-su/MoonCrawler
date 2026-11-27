@@ -46,12 +46,14 @@ moon run cmd/mooncrawler --target native -- validate config.json
 moon run cmd/mooncrawler --target native -- crawl config.json data/job https://example.com/
 moon run cmd/mooncrawler --target native -- status data/job
 moon run cmd/mooncrawler --target native -- stats data/job
+moon run cmd/mooncrawler --target native -- stats data/job --prometheus
 moon run cmd/mooncrawler --target native -- export data/job pages.jsonl
 ```
 
 运行时可在另一终端执行 `moon run cmd/mooncrawler --target native -- pause data/job`，
 等待原进程退出并保存状态后，用 `moon run cmd/mooncrawler --target native -- resume data/job`
-按保存的配置继续。`status` 显示保存的错误详情，`stats` 显示任务尝试和重试汇总。
+按保存的配置继续。`status` 显示保存的错误详情，`stats` 默认输出 JSON。
+加上 `--prometheus` 可将保存的任务状态、页面数、尝试和重试计数输出为 Prometheus 文本。
 导出持有作业锁并拒绝覆盖已有文件，使用按需读取器逐条输出正文。
 
 在源码仓库可运行真实 HTTP CLI 冒烟检查（使用本机回环服务）：

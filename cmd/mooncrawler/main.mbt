@@ -1,7 +1,7 @@
 ///|
 fn usage() -> Unit {
   println(
-    "MoonCrawler 0.3.0\n  init CONFIG.json\n  validate CONFIG.json\n  crawl CONFIG.json JOBDIR SEED [SEED ...]\n  crawl-sitemap CONFIG.json JOBDIR SITEMAP_URL\n  crawl-robots CONFIG.json JOBDIR SITE_URL\n  recrawl CONFIG.json NEW_JOBDIR PREVIOUS_JOBDIR SEED [SEED ...]\n  resume JOBDIR\n  resume-recrawl JOBDIR PREVIOUS_JOBDIR\n  pause JOBDIR\n  status JOBDIR\n  stats JOBDIR\n  export JOBDIR OUTPUT.jsonl",
+    "MoonCrawler 0.3.0\n  init CONFIG.json\n  validate CONFIG.json\n  crawl CONFIG.json JOBDIR SEED [SEED ...]\n  crawl-sitemap CONFIG.json JOBDIR SITEMAP_URL\n  crawl-robots CONFIG.json JOBDIR SITE_URL\n  recrawl CONFIG.json NEW_JOBDIR PREVIOUS_JOBDIR SEED [SEED ...]\n  resume JOBDIR\n  resume-recrawl JOBDIR PREVIOUS_JOBDIR\n  pause JOBDIR\n  status JOBDIR\n  stats JOBDIR [--prometheus]\n  export JOBDIR OUTPUT.jsonl",
   )
 }
 
@@ -165,8 +165,13 @@ async fn dispatch(args : Array[String]) -> Unit {
       println("pause requested; in-flight tasks will drain")
     }
     "status" | "stats" => {
-      guard args.length() == 3 else {
-        raise @core.Invalid("status/stats requires JOBDIR")
+      let prometheus = args[1] == "stats" &&
+        args.length() == 4 &&
+        args[3] == "--prometheus"
+      guard args.length() == 3 || prometheus else {
+        raise @core.Invalid(
+          "expected status JOBDIR or stats JOBDIR [--prometheus]",
+        )
       }
       let (saved, count) = saved_job(args[2])
       let counts : Map[String, Int32] = Map([])
@@ -186,6 +191,10 @@ async fn dispatch(args : Array[String]) -> Unit {
         for task in saved.tasks {
           attempts += task.attempts
           retries += (task.attempts - 1).max(0)
+        }
+        if prometheus {
+          print_job_metrics(counts, count, attempts, retries)
+          return
         }
         output["task_attempts"] = @json.to_json(attempts)
         output["task_retries"] = @json.to_json(retries)

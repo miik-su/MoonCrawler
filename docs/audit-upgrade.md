@@ -83,6 +83,9 @@ not being represented as OS-level isolation here.
 
 ## Verification and remaining release gates
 
+This section describes the original audit delivery. See [current verification](verification.md)
+and [the compatibility matrix](compatibility.md) for subsequent evidence and remaining limits.
+
 Focused Windows tests passed for scope, redirects, Header rejection, CIDR edges,
 Robots five-hop/budget/cache/concurrency, WAL replay/compaction/corruption,
 storage failure, aggregate >64 MiB, real HTTP/gzip expansion, and CLI resume/export.

@@ -9,6 +9,11 @@
    `max_pages` 限制发现的任务总数，包含失败、跳过和被 Robots 禁止的任务。
 3. `status` 读取最近保存的任务状态和错误，`stats` 汇总尝试及重试。
    一次任务尝试可能包含 Robots 或多跳请求，计数不能当作实际 HTTP 请求数。
+   `stats JOBDIR --prometheus` 将同一持久化视图输出为 Prometheus 文本，
+   包含各任务状态、页面数、尝试和重试数。指标只有固定的状态标签，
+   不包含站点 URL 或正文。恢复到较早检查点时数值可能下降，因此均为 gauge。
+   命令通过标准输出交付一次快照；实时请求指标仍通过 Engine API 或 CLI 的 JSON 指标查看。
+   [Prometheus 文本格式](https://prometheus.io/docs/instrumenting/exposition_formats/)
 4. `pause` 是协作请求。在途请求可能继续，等待原进程退出后再运行
    `resume` 或 `export`。续跑会读取同一作业的持久化配置和状态。
 5. 将 JSONL 导出到新的输出路径。导出过程中出错可能留下部分输出，

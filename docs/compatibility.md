@@ -26,10 +26,11 @@ and performance verification remain release gates.
 | Streaming jobs | CLI uses `Engine::new_streaming`; checkpoint validation, restore and compaction retain records/bounded shard batches rather than every page. Older monolithic jobs migrate through the existing bounded load |
 | Resume | successes retained, interrupted workers retry; host cooldown/Robots cache restart from configuration |
 | Cookie/proxy | disabled by default; custom adapters can implement explicit sessions with equivalent safety |
-| Monitoring | persisted states, attempts, errors, save time; in-process request/outcome/duration and page budget metrics via API and optional CLI JSON |
+| Monitoring | persisted states, attempts, errors and save time; Prometheus text snapshots via `stats --prometheus`; in-process request and page budget metrics via API and optional CLI JSON |
 
 The upstream HTML parser has no preallocation/node budget or cancellation hook.
-Input is bounded. A short coverage-guided campaign covers selected HTML input
+Input is bounded. Body, title and selector text extraction use iterative traversal.
+A short coverage-guided campaign covers selected HTML input
 mutations. It does not establish an upstream DOM memory bound or complete coverage.
 Task metadata remains in memory during execution and recovery; the default
 library constructor also retains pages. The 100K task ceiling is a bound,
@@ -45,7 +46,7 @@ write-space error through the JSONL CLI. The failed export can leave a partial f
 
 - Complete platform/TLS certification, system-resolver/public-DNS cache coverage.
 - GBK decoder, optional cookie sessions and proxy adapters.
-- Metrics/logging exporters, broader parser fuzzing and real-page throughput.
+- Live metric export, structured logging adapters, broader parser fuzzing and real-page throughput.
 - Physical power interruption and other filesystem/platform crash fixtures.
   [Linux/ext4 virtual power-cut evidence](https://github.com/miik-su/MoonCrawler/tree/main/evidence/2026-11-26-specialized)
   covers five specific write/publication stages.
