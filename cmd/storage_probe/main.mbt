@@ -2,12 +2,21 @@
 async fn main {
   let args = @env.args()
   let dir = args[2]
-  if args[1] == "init" {
+  if args[1] == "system-cname" {
+    check_system_cname(dir)
+    return
+  }
+  if args[1] == "init" || args[1] == "init-export" {
     let store = @storage.FileStore::open(dir + "/job")
     defer store.close()
     let config = { ..@core.Config::default(), allowed_hosts: ["example.com"], }
-    let text = String::make(1048576, 'x')
-    let pages = Array::makei(65, i => @core.Page::{
+    let (count, length) = if args[1] == "init-export" {
+      (2, 96 * 1024)
+    } else {
+      (65, 1048576)
+    }
+    let text = String::make(length, 'x')
+    let pages = Array::makei(count, i => @core.Page::{
       url: "https://example.com/\{i}",
       text,
       title: "",

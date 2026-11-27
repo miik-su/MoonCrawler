@@ -1,0 +1,74 @@
+----
+import {
+  "moonbitlang/async@0.22.5",
+  "moonbitlang/async@0.22.5/fs",
+  "moonbitlang/async@0.22.5/shell",
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+}
+----
+
+async fn build(name : String) -> String {
+  @shell.Cmd("moon", ["build", "cmd/" + name, "--target", "native", "--debug"]).run(timeout_ms=120000)
+  "_build/native/debug/build/cmd/\{name}/\{name}"
+}
+
+async fn check_export(dir : String, probe : String) -> Unit {
+  let cli = build("mooncrawler")
+  @shell.Cmd(probe, ["init-export", dir]).run(timeout_ms=10000)
+  let mount = dir + "/limited"
+  @fs.mkdir(mount)
+  let limit = 64 * 1024
+  @shell.Cmd("sudo", ["-n", "mount", "-t", "tmpfs", "-o", "size=64k,mode=0700,uid=" + current_uid() + ",nosuid,nodev,noexec", "tmpfs", mount]).run(timeout_ms=5000)
+  defer @shell.Cmd("sudo", ["-n", "umount", mount]).run(timeout_ms=5000)
+
+  let limited = mount + "/pages.jsonl"
+  let result = @shell.Cmd(cli, ["export", dir + "/job", limited], env={"LC_ALL": "C"}).output(timeout_ms=10000)
+  println("Limited export exit: \{result.exit_code()}")
+  println(result.stdout() + result.stderr())
+  assert_true(result.exit_code() != 0)
+  assert_true(result.stderr().contains("No space left on device"))
+  let partial = @fs.read_file(limited).text()
+  // The fixture's JSONL uses ASCII throughout, so this is also the byte count.
+  let written = partial.length()
+  assert_eq(written, limit)
+  assert_true(!partial.has_suffix("\n"))
+  println("Linux tmpfs partial JSONL bytes: \{written}")
+
+  let full = dir + "/complete.jsonl"
+  @shell.Cmd(cli, ["export", dir + "/job", full]).run(timeout_ms=10000)
+  let content = @fs.read_file(full).text()
+  assert_true(content.has_suffix("\n"))
+  let lines = content.trim_end().split("\n").to_array()
+  assert_eq(lines.length(), 2)
+  for i, row in lines {
+    let json = @json.parse(row.to_owned())
+    guard json is Object(fields) else { fail("expected a page object") }
+    assert_eq(fields.get("url"), Some(Json::string("https://example.com/\{i}")))
+    assert_eq(fields.get("text"), Some(Json::string(String::make(96 * 1024, 'x'))))
+  }
+  println("Same job re-exported to normal storage: 2 matching JSONL records, 98304 text bytes each.")
+}
+
+async fn current_uid() -> String {
+  let output = @shell.Cmd("id", ["-u"]).output(timeout_ms=3000)
+  output.check()
+  output.stdout().trim().to_owned()
+}
+
+async fn main {
+  assert_true(@async.platform is Linux, msg="requires a disposable Linux test runner with sudo")
+  let args = @env.args()
+  let dir = @fs.tmpdir(prefix="crawler-platform-boundary-")
+  defer @fs.rmdir(dir, recursive=true)
+  let probe = build("storage_probe")
+  match args[1] {
+    "cname" => {
+      @fs.write_file(dir + "/nsswitch.conf", "hosts: dns\n")
+      @fs.write_file(dir + "/resolv.conf", "nameserver 127.0.0.1\noptions timeout:1 attempts:1\n")
+      @shell.Cmd("sudo", ["-n", "unshare", "--mount", "--net", "--propagation", "private", "--", probe, "system-cname", dir]).run(timeout_ms=20000)
+    }
+    "export-enospc" => check_export(dir, probe)
+    _ => fail("expected cname or export-enospc")
+  }
+}

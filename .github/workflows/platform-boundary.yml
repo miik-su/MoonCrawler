@@ -1,0 +1,30 @@
+name: Linux system boundary verification
+on:
+  push:
+    paths:
+      - '.github/workflows/platform-boundary.yml'
+      - 'cmd/storage_probe/dns.mbt'
+      - 'tools/platform_boundary.mbtx'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  boundary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [cname, export-enospc]
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: ./.github/actions/setup
+      - run: moon update
+      - name: Run the isolated boundary check
+        shell: bash
+        run: moon run tools/platform_boundary.mbtx -- ${{ matrix.scenario }} 2>&1 | tee platform-boundary.log
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: platform-boundary-${{ matrix.scenario }}
+          path: platform-boundary.log

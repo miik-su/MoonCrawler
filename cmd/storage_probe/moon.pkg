@@ -1,10 +1,18 @@
 import {
   "miik-su/mooncrawler/core",
+  "miik-su/mooncrawler/security",
   "miik-su/mooncrawler/storage",
+  "miik-su/mooncrawler/url",
   "moonbitlang/core/env",
   "moonbitlang/core/json",
   "moonbitlang/async",
   "moonbitlang/async/fs",
+  "moonbitlang/async/shell",
+  "moonbitlang/async/socket",
 }
 
 pkgtype(kind: "executable")
+
+options(
+  supported_targets: "native",
+)
