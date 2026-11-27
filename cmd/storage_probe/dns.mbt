@@ -31,7 +31,7 @@ async fn check_system_cname(dir : String) -> Unit {
   }
   @async.with_timeout(10000, () => {
     @async.with_task_group(group => {
-      group.spawn_bg(() => {
+      group.spawn_bg(no_wait=true, () => {
         for ;; {
           reply_to_alias(dns)
         }
