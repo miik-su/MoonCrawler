@@ -1,0 +1,44 @@
+2026-11-28T04:22:01.4395070Z ##[group]Run moon update
+2026-11-28T04:22:01.4395280Z moon update
+2026-11-28T04:22:01.4429150Z shell: /bin/bash -e {0}
+2026-11-28T04:22:01.4429430Z ##[endgroup]
+2026-11-28T04:22:03.2494440Z Registry index cloned successfully
+2026-11-28T04:22:03.2495610Z Symbols updated successfully
+2026-11-28T04:22:03.2587200Z ##[group]Run moon check --target native --deny-warn
+2026-11-28T04:22:03.2587620Z moon check --target native --deny-warn
+2026-11-28T04:22:03.2617120Z shell: /bin/bash -e {0}
+2026-11-28T04:22:03.2617320Z ##[endgroup]
+2026-11-28T04:22:03.2935500Z Downloading moonbit-community/html@0.2.4
+2026-11-28T04:22:03.9354110Z Downloading moonbitlang/x@0.5.7
+2026-11-28T04:22:04.6213250Z Downloading moonbitlang/async@0.22.5
+2026-11-28T04:22:06.3581210Z Finished. moon: ran 100 tasks, now up to date
+2026-11-28T04:22:06.3636460Z ##[group]Run moon fmt --check
+2026-11-28T04:22:06.3636830Z moon fmt --check
+2026-11-28T04:22:06.3668520Z shell: /bin/bash -e {0}
+2026-11-28T04:22:06.3668780Z ##[endgroup]
+2026-11-28T04:22:07.1253050Z Finished. moon: ran 127 tasks, now up to date
+2026-11-28T04:22:07.1384270Z ##[group]Run moon info --target native
+2026-11-28T04:22:07.1384620Z moon info --target native
+2026-11-28T04:22:07.1414900Z shell: /bin/bash -e {0}
+2026-11-28T04:22:07.1415110Z ##[endgroup]
+2026-11-28T04:22:07.6881040Z Finished. moon: ran 49 tasks, now up to date
+2026-11-28T04:22:07.7013500Z ##[group]Run git diff --exit-code -- '*.mbti'
+2026-11-28T04:22:07.7013810Z git diff --exit-code -- '*.mbti'
+2026-11-28T04:22:07.7044790Z shell: /bin/bash -e {0}
+2026-11-28T04:22:07.7045010Z ##[endgroup]
+2026-11-28T04:22:07.7776490Z ##[group]Run moon test core/scope_test.mbt core/migration_test.mbt frontier/redirect_test.mbt robots/capacity_test.mbt security/boundary_test.mbt fuzz/corpus_test.mbt --target native
+2026-11-28T04:22:07.7777620Z moon test core/scope_test.mbt core/migration_test.mbt frontier/redirect_test.mbt robots/capacity_test.mbt security/boundary_test.mbt fuzz/corpus_test.mbt --target native
+2026-11-28T04:22:07.7807250Z shell: /bin/bash -e {0}
+2026-11-28T04:22:07.7807460Z ##[endgroup]
+2026-11-28T04:22:13.6224910Z warning: /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/libtool: archive library: /Users/runner/work/MoonCrawler/MoonCrawler/_build/native/debug/test/.mooncakes/moonbitlang/async/types/libtypes.a the table of contents is empty (no object file members in the library define global symbols)
+2026-11-28T04:22:13.6408770Z Total tests: 6, passed: 6, failed: 0.
+2026-11-28T04:22:13.6459960Z ##[group]Run moon test engine/policy_test.mbt engine/fairness_test.mbt engine/robots_limits_test.mbt engine/failure_test.mbt storage/journal_test.mbt storage/file_safety_test.mbt --target native
+2026-11-28T04:22:13.6461210Z moon test engine/policy_test.mbt engine/fairness_test.mbt engine/robots_limits_test.mbt engine/failure_test.mbt storage/journal_test.mbt storage/file_safety_test.mbt --target native
+2026-11-28T04:22:13.6492440Z shell: /bin/bash -e {0}
+2026-11-28T04:22:13.6492670Z ##[endgroup]
+2026-11-28T04:22:16.6421090Z Total tests: 6, passed: 6, failed: 0.
+2026-11-28T04:22:16.6469650Z ##[group]Run moon run tools/readiness_evidence.mbtx
+2026-11-28T04:22:16.6469990Z moon run tools/readiness_evidence.mbtx
+2026-11-28T04:22:16.6504910Z shell: /bin/bash -e {0}
+2026-11-28T04:22:16.6505160Z ##[endgroup]
+2026-11-28T04:22:35.6570310Z Readiness evidence recorded for 79ed09927e1e50a55dec98141be41eb86229a200

@@ -1,5 +1,11 @@
 # Focused verification
 
+## macOS 15 ARM64 focused rerun
+
+The [macOS rerun and raw output](../evidence/2026-11-28-macos-focused/README.md)
+record the successful native CI rerun, the tested source revision and the
+limits of the persisted-file recovery model.
+
 ## Mooncakes 0.3.0
 
 The [registry release evidence](../evidence/2026-11-28-mooncakes/README.md)

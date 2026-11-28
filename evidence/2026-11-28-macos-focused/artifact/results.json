@@ -1,0 +1,136 @@
+{
+  "source_revision": "79ed09927e1e50a55dec98141be41eb86229a200",
+  "source_dirty_at_start": false,
+  "platform": "macOS",
+  "workflow_run_id": "46019109974",
+  "toolchain": "moon 0.1.20261023 (3778465 2026-10-23) ~/.moon/bin/moon\nmoonc v0.10.17+d971670cd (2026-10-23) ~/.moon/bin/moonc\nmoonrun 0.1.20261023 (3778465 2026-10-23) ~/.moon/bin/moonrun\n\nFeature flags enabled: rr_moon_mod,rr_moon_pkg\n",
+  "full_suite": false,
+  "published": false,
+  "registry_install_tested": false,
+  "checks": [
+    {
+      "name": "check",
+      "command": [
+        "moon",
+        "check",
+        "--target",
+        "native",
+        "--deny-warn"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "480"
+    },
+    {
+      "name": "format",
+      "command": [
+        "moon",
+        "fmt",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "9"
+    },
+    {
+      "name": "interfaces",
+      "command": [
+        "moon",
+        "info",
+        "--target",
+        "native"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "497"
+    },
+    {
+      "name": "interface-diff",
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "--",
+        "*.mbti"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "16"
+    },
+    {
+      "name": "fetcher",
+      "command": [
+        "moon",
+        "test",
+        "fetcher/attack_test.mbt",
+        "fetcher/network_test.mbt",
+        "fetcher/headers_test.mbt",
+        "--target",
+        "native",
+        "--deny-warn"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "1565"
+    },
+    {
+      "name": "parser",
+      "command": [
+        "moon",
+        "test",
+        "parser/parser_test.mbt",
+        "parser/extreme_test.mbt",
+        "--target",
+        "native",
+        "--deny-warn"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "766"
+    },
+    {
+      "name": "maintenance",
+      "command": [
+        "moon",
+        "test",
+        "sitemap/sitemap_test.mbt",
+        "parser/selector_test.mbt",
+        "storage/streaming_test.mbt",
+        "engine/review_test.mbt",
+        "engine/wire_dns_test.mbt",
+        "--target",
+        "native",
+        "--deny-warn"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "2831"
+    },
+    {
+      "name": "cli",
+      "command": [
+        "moon",
+        "run",
+        "tools/cli_smoke.mbtx"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "5440"
+    },
+    {
+      "name": "package",
+      "command": [
+        "moon",
+        "run",
+        "tools/package_check.mbtx"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "6566"
+    },
+    {
+      "name": "power-loss-model",
+      "command": [
+        "moon",
+        "test",
+        "storage/power_loss_model_test.mbt",
+        "--target",
+        "native",
+        "--deny-warn"
+      ],
+      "exit_code": 0,
+      "elapsed_ms": "64"
+    }
+  ]
+}

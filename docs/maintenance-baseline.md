@@ -14,6 +14,8 @@
 | 0.3.0 维护增量 | 有界 Sitemap 发现、选择器、条件重抓、运行指标及流式作业；见 [使用指南](user-guide.md) 与 [验证索引](verification.md) |
 
 0.3.0 的定向编译、格式、接口、CLI 和包校验已经在三平台通过。
+新增指标和解析改动的 macOS 15 ARM64 定向作业已在第二次运行通过。
+[复跑结果及原始日志](../evidence/2026-11-28-macos-focused/README.md)
 Sitemap、选择器、重抓、流式作业和诊断的边界见 [兼容矩阵](compatibility.md)。
 独立进程测量、11 个强制终止阶段及历史报告见 [证据归档](../evidence/2026-11-26-0.3.0/README.md)。
 
